@@ -1,12 +1,67 @@
 import { fetchFile } from '@ffmpeg/util';
 
 /**
- * Extract metadata from a video file using FFmpeg
+ * Fast-path: read video metadata via <video> without decoding full stream.
+ * Falls back to FFmpeg in getVideoMetadata when unavailable.
+ * @param {File} file
+ * @returns {Promise<{duration: number, width: number, height: number}>}
+ */
+export const getVideoMetadataFast = async (file) => {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+
+        const cleanup = () => {
+            URL.revokeObjectURL(url);
+            video.src = '';
+        };
+
+        const timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error('Metadata read timeout'));
+        }, 5000);
+
+        video.onloadedmetadata = () => {
+            clearTimeout(timeout);
+            const duration = Number.isFinite(video.duration) ? video.duration : 0;
+            resolve({
+                duration,
+                width: video.videoWidth || 0,
+                height: video.videoHeight || 0
+            });
+            cleanup();
+        };
+
+        video.onerror = () => {
+            clearTimeout(timeout);
+            cleanup();
+            reject(new Error('Failed to read metadata with <video>'));
+        };
+
+        video.src = url;
+    });
+};
+
+/**
+ * Extract metadata from a video file using a fast DOM path first,
+ * then FFmpeg as a fallback for edge cases.
  * @param {FFmpeg} ffmpeg - FFmpeg instance
  * @param {File} file - Video file
  * @returns {Promise<{duration: number, width: number, height: number}>}
  */
 export const getVideoMetadata = async (ffmpeg, file) => {
+    // Try <video> metadata first (fast, no heavy decode)
+    try {
+        const fast = await getVideoMetadataFast(file);
+        if (fast.duration > 0 && fast.width > 0 && fast.height > 0) {
+            return fast;
+        }
+    } catch (e) {
+        // Fall back to FFmpeg
+    }
+
+    // Fallback: FFmpeg parse (slower, full decode of headers)
     const inputName = 'input_meta' + getExtension(file.name);
 
     // Write file to FFmpeg virtual filesystem
@@ -64,13 +119,93 @@ export const getVideoMetadata = async (ffmpeg, file) => {
 };
 
 /**
- * Generate a thumbnail from video
+ * Generate a thumbnail from video using DOM path first, FFmpeg as fallback.
  * @param {FFmpeg} ffmpeg - FFmpeg instance
  * @param {File} file - Video file
  * @param {number} time - Time in seconds to extract thumbnail (default: 0)
  * @returns {Promise<string>} - Blob URL of thumbnail
  */
 export const generateVideoThumbnail = async (ffmpeg, file, time = 0) => {
+    try {
+        const fast = await generateVideoThumbnailFast(file, time);
+        if (fast) return fast;
+    } catch (e) {
+        // Fall through to FFmpeg path
+    }
+    return generateVideoThumbnailWithFFmpeg(ffmpeg, file, time);
+};
+
+/**
+ * Thumbnail via <video> + canvas (fast path, no wasm).
+ * @param {File} file
+ * @param {number} time
+ * @returns {Promise<string|null>}
+ */
+export const generateVideoThumbnailFast = async (file, time = 0) => {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+
+        let cleaned = false;
+        const cleanup = () => {
+            if (cleaned) return;
+            cleaned = true;
+            URL.revokeObjectURL(url);
+            video.src = '';
+        };
+
+        const bail = (err) => {
+            cleanup();
+            reject(err instanceof Error ? err : new Error(String(err)));
+        };
+
+        video.onloadedmetadata = () => {
+            const targetTime = Math.max(0, Math.min(time, Number.isFinite(video.duration) ? Math.max(video.duration - 0.05, 0) : time));
+            // Some browsers require readyState before seeking
+            if (video.readyState >= 2) {
+                video.currentTime = targetTime;
+            } else {
+                video.oncanplay = () => {
+                    video.currentTime = targetTime;
+                };
+            }
+        };
+
+        video.onseeked = () => {
+            try {
+                const targetWidth = 320;
+                const scale = video.videoWidth ? targetWidth / video.videoWidth : 1;
+                const canvas = document.createElement('canvas');
+                canvas.width = targetWidth;
+                canvas.height = Math.max(1, Math.round((video.videoHeight || 1) * scale));
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob((blob) => {
+                    cleanup();
+                    if (!blob) {
+                        reject(new Error('Failed to create thumbnail blob'));
+                        return;
+                    }
+                    resolve(URL.createObjectURL(blob));
+                }, 'image/jpeg', 0.8);
+            } catch (e) {
+                bail(e);
+            }
+        };
+
+        video.onerror = () => bail(new Error('Failed to generate thumbnail with <video>'));
+
+        video.src = url;
+    });
+};
+
+/**
+ * Thumbnail via FFmpeg (fallback).
+ */
+const generateVideoThumbnailWithFFmpeg = async (ffmpeg, file, time = 0) => {
     const inputName = 'input_thumb' + getExtension(file.name);
     const outputName = 'thumbnail.jpg';
 
