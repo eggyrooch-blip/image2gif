@@ -3,7 +3,9 @@
     "allow": [
       "Bash(wc:*)",
       "Bash(npm run build:*)",
-      "Bash(gh pr list:*)"
+      "Bash(gh pr list:*)",
+      "Bash(curl:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

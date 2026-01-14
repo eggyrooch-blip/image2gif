@@ -22,6 +22,18 @@ export const translations = {
             support: "Supports JPG, PNG, WebP",
             tip: "💡 Try uploading 5-10 screenshots, set 500ms delay for smooth animation",
         },
+        dragDropVideo: {
+            title: "Drop video file here",
+            subtitle: "or click to select",
+            support: "Supports MP4, WebM, MOV, AVI, MKV",
+            tip: "Recommended under 200MB; first run loads FFmpeg (~30MB)",
+        },
+        dragDropVideo: {
+            title: "Drop video file here",
+            subtitle: "or click to select",
+            support: "Supports MP4, WebM, MOV, AVI, MKV",
+            tip: "Recommended under 200MB for stability",
+        },
         settings: {
             dimensions: "Dimensions",
             width: "Width",
@@ -168,8 +180,8 @@ export const translations = {
             cancel: "Cancel",
         },
         overlay: {
-            title: "Overlay / Watermark",
-            enable: "Enable Overlay",
+            title: "Sticker",
+            enable: "Enable Sticker",
             active: "Active",
             upload: "Upload Image",
             uploadHint: "PNG with transparency recommended",
@@ -184,7 +196,7 @@ export const translations = {
             scale: "Scale",
             margin: "Margin",
             opacity: "Opacity",
-            previewHint: "Overlay will be applied when generating GIF"
+            previewHint: "Sticker will be applied when generating output"
         },
     },
     zh: {
@@ -200,7 +212,7 @@ export const translations = {
             originalSize: "原始尺寸: {width}×{height}px",
         },
         steps: {
-            select: "选择图片",
+            select: "选择文件",
             configure: "配置参数",
             result: "生成结果",
         },
@@ -209,6 +221,12 @@ export const translations = {
             subtitle: "或点击选择文件",
             support: "支持 JPG, PNG, WebP",
             tip: "💡 试试上传 5-10 张截图，设置 500ms 延迟制作流畅动画",
+        },
+        dragDropVideo: {
+            title: "拖放视频文件到这里",
+            subtitle: "或点击选择",
+            support: "支持 MP4、WebM、MOV、AVI、MKV，建议不超过 200MB",
+            tip: "首次处理视频会加载 FFmpeg（约 30MB）",
         },
         settings: {
             dimensions: "尺寸设置",
@@ -356,7 +374,7 @@ export const translations = {
             cancel: "取消",
         },
         overlay: {
-            title: "贴图 / 水印",
+            title: "贴图",
             enable: "启用贴图",
             active: "已启用",
             upload: "上传图片",
@@ -372,7 +390,7 @@ export const translations = {
             scale: "缩放",
             margin: "边距",
             opacity: "透明度",
-            previewHint: "贴图将在生成 GIF 时应用"
+            previewHint: "贴图将在生成时应用"
         },
     },
 };

@@ -41,15 +41,20 @@ const buildJsonLd = (routeObj, data) => {
     },
   ];
 
+  const categoryLookup = {
+    'video-to-gif': 'Video to GIF Tools',
+    'gif-optimization': 'GIF Optimization',
+    'video-tools': 'Video Tools',
+    'mp4-tools': 'MP4 Tools',
+    conversion: 'Conversion Tools',
+  };
+
   const categoryName =
     routePath === '/'
       ? 'GIF Maker'
       : data.categoryLabel ||
-      (routeObj.category === 'video-to-gif'
-        ? 'Video to GIF Tools'
-        : routeObj.category === 'gif-optimization'
-          ? 'GIF Optimization'
-          : 'Image to GIF Tools');
+      categoryLookup[routeObj.category] ||
+      'Image to GIF Tools';
 
   breadcrumbs.push({
     '@type': 'ListItem',
@@ -121,6 +126,12 @@ const buildSEOBlock = (route, data) => {
   const paragraphsHtml = (data.intro || [])
     .map((p) => `<p>${escapeHtml(p)}</p>`)
     .join('\n');
+  const sectionsHtml = (data.sections || [])
+    .map(
+      (section) =>
+        `<h2>${escapeHtml(section.title)}</h2>${section.body ? `<p>${escapeHtml(section.body)}</p>` : ''}`,
+    )
+    .join('\n');
   const linksHtml = relatedLinks
     .map((href) => `<li><a href="${href}">${href.replace('/', '') || 'home'}</a></li>`)
     .join('\n');
@@ -129,6 +140,7 @@ const buildSEOBlock = (route, data) => {
   <section id="seo-content" aria-label="SEO content" class="seo-content" style="position:absolute;left:-9999px;height:1px;width:1px;overflow:hidden;">
     <h1>${escapeHtml(data.h1 || data.title)}</h1>
     ${paragraphsHtml}
+    ${sectionsHtml}
     <h2>Key benefits</h2>
     <ul class="seo-features">
       ${featuresHtml}

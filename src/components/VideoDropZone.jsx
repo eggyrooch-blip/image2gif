@@ -97,13 +97,13 @@ const VideoDropZone = ({ onVideoSelected, className, disabled }) => {
 
             <div className="text-center space-y-1">
                 <h3 className="text-lg font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
-                    {t('video.dropTitle')}
+                    {t('dragDropVideo.title')}
                 </h3>
                 <p className="text-sm text-gray-400">
-                    {t('video.dropSupport')}
+                    {t('dragDropVideo.support')}
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
-                    {t('video.maxSize')}
+                    {t('dragDropVideo.tip')}
                 </p>
             </div>
 

@@ -9,4 +9,6 @@ export const routes = [
   { path: '/video-to-gif', category: 'video-to-gif', key: 'video-to-gif' },
   { path: '/mp4-to-gif', category: 'video-to-gif', key: 'mp4-to-gif' },
   { path: '/screen-recording-to-gif', category: 'video-to-gif', key: 'screen-recording-to-gif' },
+  { path: '/image-to-mp4', category: 'video-tools', key: 'image-to-mp4' },
+  { path: '/compress-mp4', category: 'video-tools', key: 'compress-mp4' },
 ];

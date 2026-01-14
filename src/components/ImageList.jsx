@@ -18,7 +18,16 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const SortableItem = ({ img, index, onRemove, onEdit, onDelayChange, globalDelay }) => {
+const SortableItem = ({
+    img,
+    index,
+    onRemove,
+    onEdit,
+    onDelayChange,
+    globalDelay,
+    allowEdit = true,
+    allowDelay = true
+}) => {
     const [showDelayInput, setShowDelayInput] = useState(false);
     const [localDelay, setLocalDelay] = useState(img.delay ?? '');
 
@@ -77,44 +86,46 @@ const SortableItem = ({ img, index, onRemove, onEdit, onDelayChange, globalDelay
             </div>
 
             {/* Per-Frame Delay Badge */}
-            <div className="absolute bottom-2 right-2 z-10">
-                {showDelayInput ? (
-                    <div
-                        className="flex items-center gap-1 bg-white rounded-lg shadow-lg border border-blue-300 p-1"
-                        onPointerDown={(e) => e.stopPropagation()}
-                    >
-                        <input
-                            type="number"
-                            value={localDelay}
-                            onChange={(e) => setLocalDelay(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            onBlur={handleDelaySubmit}
-                            placeholder={String(globalDelay)}
-                            min="10"
-                            max="10000"
-                            className="w-16 px-1.5 py-0.5 text-xs border-0 bg-transparent focus:outline-none text-gray-700 font-mono"
-                            autoFocus
-                        />
-                        <span className="text-[10px] text-gray-400 pr-1">ms</span>
-                    </div>
-                ) : (
-                    <button
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDelayInput(true);
-                        }}
-                        className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium shadow-sm backdrop-blur-sm transition-all cursor-pointer ${isCustomDelay
-                            ? 'bg-blue-500 text-white border border-blue-400'
-                            : 'bg-white/90 text-gray-500 border border-gray-200 opacity-0 group-hover:opacity-100'
-                            }`}
-                        title="Set custom delay for this frame"
-                    >
-                        <Clock className="w-3 h-3" />
-                        <span>{displayDelay}ms</span>
-                    </button>
-                )}
-            </div>
+            {allowDelay && (
+                <div className="absolute bottom-2 right-2 z-10">
+                    {showDelayInput ? (
+                        <div
+                            className="flex items-center gap-1 bg-white rounded-lg shadow-lg border border-blue-300 p-1"
+                            onPointerDown={(e) => e.stopPropagation()}
+                        >
+                            <input
+                                type="number"
+                                value={localDelay}
+                                onChange={(e) => setLocalDelay(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onBlur={handleDelaySubmit}
+                                placeholder={String(globalDelay)}
+                                min="10"
+                                max="10000"
+                                className="w-16 px-1.5 py-0.5 text-xs border-0 bg-transparent focus:outline-none text-gray-700 font-mono"
+                                autoFocus
+                            />
+                            <span className="text-[10px] text-gray-400 pr-1">ms</span>
+                        </div>
+                    ) : (
+                        <button
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDelayInput(true);
+                            }}
+                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium shadow-sm backdrop-blur-sm transition-all cursor-pointer ${isCustomDelay
+                                ? 'bg-blue-500 text-white border border-blue-400'
+                                : 'bg-white/90 text-gray-500 border border-gray-200 opacity-0 group-hover:opacity-100'
+                                }`}
+                            title="Set custom delay for this frame"
+                        >
+                            <Clock className="w-3 h-3" />
+                            <span>{displayDelay}ms</span>
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Visual Grip Indicator (Optional now, but good for affordance) */}
             <div className="absolute bottom-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -125,17 +136,19 @@ const SortableItem = ({ img, index, onRemove, onEdit, onDelayChange, globalDelay
 
             {/* Edit & Remove Buttons - Stop Propagation to prevent drag start */}
             <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(index - 1);
-                    }}
-                    className="p-1.5 bg-white/90 hover:bg-blue-50 hover:text-blue-500 rounded-full text-gray-400 shadow-sm border border-gray-100 backdrop-blur-sm transition-colors cursor-pointer"
-                    title="Edit frame"
-                >
-                    <Pencil className="w-4 h-4" />
-                </button>
+                {allowEdit && (
+                    <button
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(index - 1);
+                        }}
+                        className="p-1.5 bg-white/90 hover:bg-blue-50 hover:text-blue-500 rounded-full text-gray-400 shadow-sm border border-gray-100 backdrop-blur-sm transition-colors cursor-pointer"
+                        title="Edit frame"
+                    >
+                        <Pencil className="w-4 h-4" />
+                    </button>
+                )}
                 <button
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
@@ -172,7 +185,16 @@ const SortableItem = ({ img, index, onRemove, onEdit, onDelayChange, globalDelay
     );
 };
 
-const ImageList = ({ images, onRemove, onReorder, onOpenEditor, onDelayChange, globalDelay }) => {
+const ImageList = ({
+    images,
+    onRemove,
+    onReorder,
+    onOpenEditor,
+    onDelayChange,
+    globalDelay,
+    allowEdit = true,
+    allowDelay = true
+}) => {
     const { t } = useLanguage();
 
     const sensors = useSensors(
@@ -226,6 +248,8 @@ const ImageList = ({ images, onRemove, onReorder, onOpenEditor, onDelayChange, g
                                 onEdit={onOpenEditor}
                                 onDelayChange={onDelayChange}
                                 globalDelay={globalDelay}
+                                allowEdit={allowEdit}
+                                allowDelay={allowDelay}
                             />
                         ))}
                     </div>
@@ -236,4 +260,3 @@ const ImageList = ({ images, onRemove, onReorder, onOpenEditor, onDelayChange, g
 };
 
 export default ImageList;
-
