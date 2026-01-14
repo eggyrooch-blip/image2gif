@@ -23,6 +23,9 @@ createRoot(document.getElementById('root')).render(
           <Route path="/photo-to-gif" element={<LandingPageWrapper pageKey="photo-to-gif" />} />
           <Route path="/compress-gif" element={<LandingPageWrapper pageKey="compress-gif" />} />
           <Route path="/no-watermark-gif-maker" element={<LandingPageWrapper pageKey="no-watermark-gif-maker" />} />
+          <Route path="/video-to-gif" element={<LandingPageWrapper pageKey="video-to-gif" />} />
+          <Route path="/mp4-to-gif" element={<LandingPageWrapper pageKey="mp4-to-gif" />} />
+          <Route path="/screen-recording-to-gif" element={<LandingPageWrapper pageKey="screen-recording-to-gif" />} />
         </Routes>
       </BrowserRouter>
     </LanguageProvider>

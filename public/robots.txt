@@ -4,5 +4,14 @@
 User-agent: *
 Allow: /
 
+# Disallow development/internal paths
+Disallow: /api/
+Disallow: /_*
+Disallow: /node_modules/
+Disallow: /*.map$
+
+# Crawl-delay for politeness (optional)
+# Crawl-delay: 1
+
 # Sitemap location
 Sitemap: https://plotlake.com/sitemap.xml

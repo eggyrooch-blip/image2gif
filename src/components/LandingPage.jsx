@@ -132,6 +132,78 @@ const landingPageData = {
             { q: 'Do I need to pay for watermark-free exports?', a: 'No. Watermark-free is the default—no premium tier.' },
             { q: 'Can I use these GIFs commercially?', a: 'Yes, as long as you own or have rights to the source images.' }
         ]
+    },
+    'video-to-gif': {
+        title: 'Video to GIF Converter',
+        title_cn: '视频转 GIF 转换器',
+        subtitle: 'Convert any video clip to animated GIF online',
+        subtitle_cn: '在线将任何视频片段转换为动画 GIF',
+        bullets: [
+            'Supports MP4, WebM, MOV, AVI, MKV',
+            'Trim clips with precise time selection',
+            'Adjust FPS for smooth or compact GIFs',
+            'No watermark, 100% browser-based'
+        ],
+        bullets_cn: [
+            '支持 MP4、WebM、MOV、AVI、MKV',
+            '精确时间选择裁剪片段',
+            '调整 FPS 获得流畅或紧凑的 GIF',
+            '无水印，100% 浏览器处理'
+        ],
+        faqs: [
+            { q: 'What video formats can I convert?', a: 'MP4, WebM, MOV, AVI, MKV, and FLV. Most common formats work.' },
+            { q: 'How long can my video be?', a: 'We recommend clips under 60 seconds. Longer videos produce very large GIFs.' },
+            { q: 'Why does video processing take longer?', a: 'Videos need frame extraction via FFmpeg before GIF generation. FFmpeg loads once (~30MB) then is cached.' },
+            { q: 'Can I select just part of a video?', a: 'Yes. Use the time range slider to set start and end points.' }
+        ]
+    },
+    'mp4-to-gif': {
+        title: 'MP4 to GIF Converter',
+        title_cn: 'MP4 转 GIF 转换器',
+        subtitle: 'Convert MP4 videos to animated GIF for free',
+        subtitle_cn: '免费将 MP4 视频转换为动画 GIF',
+        bullets: [
+            'Upload any MP4 file',
+            'Set custom time range and FPS',
+            'Choose quality presets for social media',
+            'Download without watermark'
+        ],
+        bullets_cn: [
+            '上传任何 MP4 文件',
+            '设置自定义时间范围和帧率',
+            '选择社交媒体质量预设',
+            '无水印下载'
+        ],
+        faqs: [
+            { q: 'What MP4 codecs are supported?', a: 'H.264 and H.265 work in most browsers. If your file fails, try a different browser.' },
+            { q: 'What\'s the maximum MP4 file size?', a: 'We recommend under 200 MB. Larger files may slow down or fail on some devices.' },
+            { q: 'How do I make a smaller GIF from MP4?', a: 'Lower the FPS (5-10), reduce output width, or use the Small File preset.' },
+            { q: 'Will my MP4 be uploaded anywhere?', a: 'No. Everything runs in your browser. Your video never leaves your device.' }
+        ]
+    },
+    'screen-recording-to-gif': {
+        title: 'Screen Recording to GIF',
+        title_cn: '屏幕录制转 GIF',
+        subtitle: 'Convert screen recordings to shareable GIFs',
+        subtitle_cn: '将屏幕录制转换为可分享的 GIF',
+        bullets: [
+            'Perfect for tutorials and demos',
+            'Crisp text with Tutorial preset',
+            'Trim to exact clip you need',
+            'No watermark or signup required'
+        ],
+        bullets_cn: [
+            '非常适合教程和演示',
+            '使用教程预设获得清晰文字',
+            '裁剪到你需要的精确片段',
+            '无需水印或注册'
+        ],
+        faqs: [
+            { q: 'What format should my screen recording be?', a: 'MP4 or WebM work best. Most screen recorders output in these formats.' },
+            { q: 'How do I keep text readable in the GIF?', a: 'Use the Tutorial preset which prioritizes sharpness, or set a higher output width.' },
+            { q: 'What FPS should I use for screen recordings?', a: '10-15 FPS is usually enough for UI demos. Use higher for animations.' },
+            { q: 'Can I add annotations to my GIF?', a: 'Not directly. Add annotations in your screen recorder before converting.' }
+        ]
     }
 };
 

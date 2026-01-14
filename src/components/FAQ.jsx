@@ -74,6 +74,67 @@ const faqData = [
         a: "You're responsible for ensuring you have the right to use any images you upload. Only use content you own or have permission to use.",
         q_cn: "我可以上传什么（版权与责任）？",
         a_cn: "你有责任确保你有权使用上传的任何图片。只使用你拥有或有权使用的内容。"
+    },
+    // Video-related FAQs
+    {
+        q: "What video formats are supported?",
+        a: "MP4, WebM, MOV, AVI, MKV, and FLV. Most common video files will work. If yours doesn't, try converting to MP4 first.",
+        q_cn: "支持哪些视频格式？",
+        a_cn: "支持 MP4、WebM、MOV、AVI、MKV 和 FLV。大多数常见视频文件都能用。如果不行，请先转换为 MP4。"
+    },
+    {
+        q: "Why does FFmpeg take so long to load the first time?",
+        a: "FFmpeg WebAssembly (~30 MB) needs to download once. After that, it's cached in your browser. Subsequent visits load instantly.",
+        q_cn: "为什么 FFmpeg 首次加载这么慢？",
+        a_cn: "FFmpeg WebAssembly（约 30 MB）需要首次下载。之后会缓存在浏览器中，后续访问立即加载。"
+    },
+    {
+        q: "How do I make my video GIF smoother?",
+        a: "Increase the FPS setting (15-24 for smooth motion). Higher FPS = more frames = smoother playback but larger file size.",
+        q_cn: "如何让视频 GIF 更流畅？",
+        a_cn: "提高 FPS 设置（15-24 可获得流畅动画）。更高 FPS = 更多帧 = 更流畅但文件更大。"
+    },
+    {
+        q: "How do I reduce video GIF file size?",
+        a: "Lower the FPS (5-10), reduce output width, or use the 'Small File' preset. Shorter clips also help significantly.",
+        q_cn: "如何减小视频 GIF 文件大小？",
+        a_cn: "降低 FPS（5-10）、减小输出宽度，或使用「小文件」预设。更短的片段也有明显帮助。"
+    },
+    {
+        q: "What's the relationship between FPS and frame delay?",
+        a: "FPS (frames per second) determines playback speed. Frame delay is auto-calculated: delay = 1000 / FPS. At 10 FPS, each frame shows for 100ms.",
+        q_cn: "FPS 和帧延迟是什么关系？",
+        a_cn: "FPS（每秒帧数）决定播放速度。帧延迟自动计算：延迟 = 1000 / FPS。在 10 FPS 时，每帧显示 100 毫秒。"
+    },
+    {
+        q: "How long can my video be?",
+        a: "We recommend clips under 60 seconds. Longer videos work but produce very large GIFs and may hit browser memory limits.",
+        q_cn: "视频可以多长？",
+        a_cn: "建议片段在 60 秒以内。更长的视频可以用，但会产生非常大的 GIF 并可能触及浏览器内存限制。"
+    },
+    {
+        q: "Can I select just part of a video?",
+        a: "Yes. Use the time range slider to set start and end points. Only the selected portion will be converted to GIF.",
+        q_cn: "我可以只选择视频的一部分吗？",
+        a_cn: "可以。使用时间范围滑块设置开始和结束点。只有选中的部分会被转换为 GIF。"
+    },
+    {
+        q: "Why is video processing slower than images?",
+        a: "Videos require frame extraction via FFmpeg before GIF generation. This takes extra time, especially for long clips or high FPS.",
+        q_cn: "为什么视频处理比图片慢？",
+        a_cn: "视频需要通过 FFmpeg 提取帧后才能生成 GIF。这需要额外时间，特别是对于长片段或高 FPS。"
+    },
+    {
+        q: "What happens if I upload a large video (>200 MB)?",
+        a: "You'll see a warning. Processing may be slow or fail on devices with limited memory. We recommend trimming or compressing first.",
+        q_cn: "如果上传大视频（>200 MB）会怎样？",
+        a_cn: "你会看到警告。处理可能很慢或在内存有限的设备上失败。建议先剪辑或压缩。"
+    },
+    {
+        q: "Can I convert a screen recording to GIF?",
+        a: "Yes. Screen recordings are perfect for GIF tutorials. Use the 'Tutorial' preset for crisp text and reasonable file size.",
+        q_cn: "我可以把屏幕录制转成 GIF 吗？",
+        a_cn: "可以。屏幕录制非常适合做 GIF 教程。使用「教程」预设可获得清晰文字和合理文件大小。"
     }
 ];
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Zap, Lock, Eye, FileCheck } from 'lucide-react';
+import { Shield, Zap, Lock, Eye, FileCheck, Video } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const trustItems = [
@@ -7,36 +7,43 @@ const trustItems = [
         icon: FileCheck,
         title: "No Watermark",
         title_cn: "无水印",
-        desc: "Exports are clean—no logo, no watermark, no attribution required.",
-        desc_cn: "导出文件干净——没有 logo、没有水印、无需署名。"
+        desc: "Export clean GIFs—no logo, no branding, no attribution required. Your GIF, your way.",
+        desc_cn: "导出干净的 GIF——没有 logo、没有品牌标识、无需署名。"
     },
     {
         icon: Zap,
-        title: "Free to Use",
-        title_cn: "免费使用",
-        desc: "Completely free. No premium tier, no hidden upgrade prompts.",
-        desc_cn: "完全免费。没有高级版，没有隐藏的升级提示。"
+        title: "100% Free Forever",
+        title_cn: "永久免费",
+        desc: "No premium tier, no trial, no hidden fees. All features unlocked for everyone.",
+        desc_cn: "没有高级版，没有试用期，没有隐藏费用。所有功能对所有人开放。"
     },
     {
         icon: Shield,
         title: "No Signup Required",
         title_cn: "无需注册",
-        desc: "Jump straight in—no account, no email, no password.",
-        desc_cn: "直接开始使用——无需账户、邮箱或密码。"
+        desc: "Start creating immediately—no email, no password, no account to manage.",
+        desc_cn: "立即开始创建——无需邮箱、密码或管理账户。"
     },
     {
         icon: Lock,
-        title: "Privacy First",
-        title_cn: "隐私优先",
-        desc: "Files are processed in your browser. Nothing is uploaded to our servers.",
-        desc_cn: "文件在浏览器中处理。不会上传到我们的服务器。"
+        title: "Privacy-First Processing",
+        title_cn: "隐私优先处理",
+        desc: "Everything runs in your browser. Your images and videos are never uploaded to any server.",
+        desc_cn: "所有处理都在浏览器中进行。你的图片和视频绝不会上传到任何服务器。"
+    },
+    {
+        icon: Video,
+        title: "Images & Video Support",
+        title_cn: "支持图片和视频",
+        desc: "Convert image sequences or video clips to GIF. MP4, WebM, MOV, JPG, PNG all supported.",
+        desc_cn: "将图片序列或视频片段转换为 GIF。支持 MP4、WebM、MOV、JPG、PNG。"
     },
     {
         icon: Eye,
-        title: "Transparent Limits",
+        title: "Honest About Limits",
         title_cn: "透明限制",
-        desc: "We're upfront about what works best. Check the FAQ for specifics.",
-        desc_cn: "我们提前告知最佳实践。详情请查看常见问题。"
+        desc: "We tell you upfront: 100 MB input, 60-second videos, 300 frames max. Check FAQ for details.",
+        desc_cn: "我们提前告知：100 MB 输入、60 秒视频、最多 300 帧。详情见 FAQ。"
     }
 ];
 
