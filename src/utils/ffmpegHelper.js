@@ -1,4 +1,5 @@
 import { fetchFile } from '@ffmpeg/util';
+import { buildOverlayFilterForPalette, validateOverlayConfig } from './overlayHelper';
 
 /**
  * @typedef {Object} ImageItem
@@ -20,6 +21,7 @@ import { fetchFile } from '@ffmpeg/util';
  * @property {number} [crossfadeFrames]
  * @property {string} [fillColor]
  * @property {string} [compression] - Compression level: 'none', 'light', 'medium', 'heavy'
+ * @property {Object} [overlay] - Overlay configuration
  */
 
 export const generateId = () => crypto.randomUUID();
@@ -302,6 +304,11 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
     const bayerScale = settings.bayerScale ?? 4; // Default: 4
     const crossfadeEnabled = settings.crossfadeEnabled ?? false;
     const crossfadeFrames = Math.min(settings.crossfadeFrames ?? 10, 15); // Cap at 15 for performance
+
+    // Auto-disable crossfade for video mode (high frame count) to prevent exponential processing
+    // Crossfade is designed for image slideshows (5-20 images), not video frames (100+ frames)
+    const MAX_CROSSFADE_SOURCE_FRAMES = 50;
+    const shouldUseCrossfade = crossfadeEnabled && images.length <= MAX_CROSSFADE_SOURCE_FRAMES;
     const fillColor = settings.fillColor ?? 'black'; // Default: black background
     const compression = settings.compression ?? 'none'; // Default: no compression
 
@@ -314,11 +321,17 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
     };
     const maxColors = compressionConfig[compression]?.maxColors ?? 256;
 
+    // Overlay settings
+    const overlay = settings.overlay ?? null;
+    const hasOverlay = overlay?.enabled && overlay?.file;
+
     // Calculate total steps for accurate progress
-    const blendFrameCount = crossfadeEnabled && images.length > 1
+    const blendFrameCount = shouldUseCrossfade && images.length > 1
         ? (images.length - 1) * crossfadeFrames
         : 0;
-    const totalSteps = images.length + blendFrameCount + 4; // images + blend frames + list + palette + gif + done
+    // Add extra step for overlay if enabled
+    const overlayStep = hasOverlay ? 1 : 0;
+    const totalSteps = images.length + blendFrameCount + 4 + overlayStep; // images + blend frames + list + (overlay) + palette + gif + done
     let currentStep = 0;
 
     // Time tracking for estimation
@@ -378,7 +391,7 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
     }
 
     // If crossfade is enabled, generate blend frames between each pair of images
-    if (crossfadeEnabled && images.length > 1) {
+    if (shouldUseCrossfade && images.length > 1) {
         const totalTransitions = images.length - 1;
         const blendFramesPerTransition = crossfadeFrames; // Already capped at 15 above
         let blendFrameIndex = 0;
@@ -460,7 +473,7 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
 
     // Duration in seconds - shorter for blend frames
     const baseDuration = delay / 1000;
-    const blendDuration = crossfadeEnabled ? (baseDuration / (crossfadeFrames + 1)).toFixed(3) : baseDuration.toFixed(3);
+    const blendDuration = shouldUseCrossfade ? (baseDuration / (crossfadeFrames + 1)).toFixed(3) : baseDuration.toFixed(3);
 
     // Track which original frame each file entry corresponds to
     let originalFrameIndex = 0;
@@ -490,22 +503,73 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
     await ffmpeg.writeFile('list.txt', listContent);
 
     // ============================================
+    // OVERLAY PREPARATION (if enabled)
+    // ============================================
+
+    let overlayInputIndex = -1;
+    const overlayFileName = 'overlay_input.png';
+
+    if (hasOverlay) {
+        updateProgress('Preparing overlay...', images.length + blendFrameCount + 1);
+        await yieldToMain();
+
+        try {
+            // Validate overlay config
+            const validation = validateOverlayConfig(overlay);
+            if (!validation.valid) {
+                console.warn('Overlay validation failed:', validation.errors);
+            } else {
+                // Write overlay file to FFmpeg virtual filesystem
+                const overlayData = await fetchFile(overlay.file);
+                await ffmpeg.writeFile(overlayFileName, overlayData);
+                overlayInputIndex = 1; // Will be input [1] after list.txt
+            }
+        } catch (e) {
+            console.error('Failed to prepare overlay:', e);
+            // Continue without overlay
+        }
+    }
+
+    // ============================================
     // HIGH QUALITY 2-PASS GIF GENERATION
     // ============================================
 
-    updateProgress('Pass 1/2: Generating palette...', images.length + 1);
+    const paletteStep = images.length + blendFrameCount + overlayStep + 1;
+    updateProgress('Pass 1/2: Generating palette...', paletteStep);
     await yieldToMain();
 
-    // Pass 1: Generate optimal palette
-    await ffmpeg.exec([
-        '-f', 'concat',
-        '-safe', '0',
-        '-i', 'list.txt',
-        '-vf', `palettegen=reserve_transparent=off:stats_mode=full:max_colors=${maxColors}`,
-        '-y', 'palette.png'
-    ]);
+    // Pre-compute overlay filter string (reused in both passes)
+    const overlayFilter = overlayInputIndex >= 0
+        ? buildOverlayFilterForPalette(width, overlay, 'main')
+        : null;
 
-    updateProgress('Pass 2/2: Rendering GIF (this may take a while)...', images.length + 2);
+    // Build palettegen command based on whether overlay is enabled
+    if (overlayFilter) {
+        // With overlay: apply overlay first, then generate palette
+        // Filter chain: [0:v] (video) + [1:v] (overlay) -> overlay -> palettegen
+        const palettegenFilter = `${overlayFilter};[main]palettegen=reserve_transparent=off:stats_mode=full:max_colors=${maxColors}`;
+
+        await ffmpeg.exec([
+            '-f', 'concat',
+            '-safe', '0',
+            '-i', 'list.txt',
+            '-i', overlayFileName,
+            '-filter_complex', palettegenFilter,
+            '-y', 'palette.png'
+        ]);
+    } else {
+        // Without overlay: standard palettegen
+        await ffmpeg.exec([
+            '-f', 'concat',
+            '-safe', '0',
+            '-i', 'list.txt',
+            '-vf', `palettegen=reserve_transparent=off:stats_mode=full:max_colors=${maxColors}`,
+            '-y', 'palette.png'
+        ]);
+    }
+
+    const gifStep = paletteStep + 1;
+    updateProgress('Pass 2/2: Rendering GIF (this may take a while)...', gifStep);
     await yieldToMain();
 
     // Pass 2: Generate GIF with high-quality settings
@@ -520,22 +584,37 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
     }
     paletteUseOpts += ':diff_mode=rectangle';
 
-    // Build filter_complex
-    // Note: True crossfade between frames requires pre-generating blend frames
-    // For now, use standard paletteuse without problematic fade filters
-    const filterComplex = `[0:v][1:v]paletteuse=${paletteUseOpts}`;
+    // Build filter_complex based on whether overlay is enabled
+    if (overlayFilter) {
+        // With overlay: [0:v] + [1:v] -> overlay -> paletteuse with [2:v] (palette)
+        const filterComplex = `${overlayFilter};[main][2:v]paletteuse=${paletteUseOpts}`;
 
-    await ffmpeg.exec([
-        '-f', 'concat',
-        '-safe', '0',
-        '-i', 'list.txt',
-        '-i', 'palette.png',
-        '-filter_complex', filterComplex,
-        '-loop', String(loop),
-        '-y', 'output.gif'
-    ]);
+        await ffmpeg.exec([
+            '-f', 'concat',
+            '-safe', '0',
+            '-i', 'list.txt',
+            '-i', overlayFileName,
+            '-i', 'palette.png',
+            '-filter_complex', filterComplex,
+            '-loop', String(loop),
+            '-y', 'output.gif'
+        ]);
+    } else {
+        // Without overlay: standard paletteuse
+        const filterComplex = `[0:v][1:v]paletteuse=${paletteUseOpts}`;
 
-    updateProgress('Reading output...', images.length + 3);
+        await ffmpeg.exec([
+            '-f', 'concat',
+            '-safe', '0',
+            '-i', 'list.txt',
+            '-i', 'palette.png',
+            '-filter_complex', filterComplex,
+            '-loop', String(loop),
+            '-y', 'output.gif'
+        ]);
+    }
+
+    updateProgress('Reading output...', gifStep + 1);
     await yieldToMain();
 
     const data = await ffmpeg.readFile('output.gif');
@@ -548,6 +627,10 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
         await ffmpeg.deleteFile('list.txt');
         await ffmpeg.deleteFile('palette.png');
         await ffmpeg.deleteFile('output.gif');
+        // Cleanup overlay file if it was created
+        if (overlayInputIndex >= 0) {
+            await ffmpeg.deleteFile(overlayFileName);
+        }
     } catch (e) {
         // Ignore cleanup errors
     }

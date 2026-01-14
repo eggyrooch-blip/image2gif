@@ -167,6 +167,25 @@ export const translations = {
             extractingFrame: "Extracting frame {current}/{total}...",
             cancel: "Cancel",
         },
+        overlay: {
+            title: "Overlay / Watermark",
+            enable: "Enable Overlay",
+            active: "Active",
+            upload: "Upload Image",
+            uploadHint: "PNG with transparency recommended",
+            position: "Position",
+            positions: {
+                'top-left': "Top Left",
+                'top-right': "Top Right",
+                'bottom-left': "Bottom Left",
+                'bottom-right': "Bottom Right",
+                'center': "Center"
+            },
+            scale: "Scale",
+            margin: "Margin",
+            opacity: "Opacity",
+            previewHint: "Overlay will be applied when generating GIF"
+        },
     },
     zh: {
         title: "图片转 GIF 制作器",
@@ -335,6 +354,25 @@ export const translations = {
             extracting: "正在提取帧...",
             extractingFrame: "正在提取第 {current}/{total} 帧...",
             cancel: "取消",
+        },
+        overlay: {
+            title: "贴图 / 水印",
+            enable: "启用贴图",
+            active: "已启用",
+            upload: "上传图片",
+            uploadHint: "推荐使用透明 PNG 图片",
+            position: "位置",
+            positions: {
+                'top-left': "左上",
+                'top-right': "右上",
+                'bottom-left': "左下",
+                'bottom-right': "右下",
+                'center': "居中"
+            },
+            scale: "缩放",
+            margin: "边距",
+            opacity: "透明度",
+            previewHint: "贴图将在生成 GIF 时应用"
         },
     },
 };

@@ -5,6 +5,7 @@ import ImageList from './components/ImageList';
 import SettingsPanel from './components/SettingsPanel';
 import PreviewArea from './components/PreviewArea';
 import FrameEditor from './components/FrameEditor';
+import OverlaySettings from './components/OverlaySettings';
 import ErrorBoundary from './components/ErrorBoundary';
 import FAQ from './components/FAQ';
 import TrustSection from './components/TrustSection';
@@ -16,6 +17,7 @@ import { useFFmpeg } from './hooks/useFFmpeg';
 import { useEditHistory } from './hooks/useEditHistory';
 import { useVideoProcessor } from './hooks/useVideoProcessor';
 import { processImagesToGif } from './utils/ffmpegHelper';
+import { getDefaultOverlayConfig } from './utils/overlayHelper';
 import { estimateFrameCount } from './utils/videoHelper';
 import { Loader2, Wand2, Undo2, Redo, X } from 'lucide-react';
 import { useLanguage } from './contexts/LanguageContext';
@@ -54,6 +56,9 @@ function App() {
   const [progressMsg, setProgressMsg] = useState('');
   const [gifUrl, setGifUrl] = useState(null);
   const [originalDimensions, setOriginalDimensions] = useState(null);
+
+  // Overlay settings state
+  const [overlaySettings, setOverlaySettings] = useState(getDefaultOverlayConfig());
 
   // Frame editor state
   const [editorOpen, setEditorOpen] = useState(false);
@@ -340,7 +345,7 @@ function App() {
 
         // Calculate delay from FPS for video frames
         const videoDelay = Math.round(1000 / videoSettings.fps);
-        const settingsWithDelay = { ...settings, delay: videoDelay };
+        const settingsWithDelay = { ...settings, delay: videoDelay, overlay: overlaySettings };
 
         setProgressMsg(t('status.generating'));
         const url = await processImagesToGif(ffmpeg, framesToProcess, settingsWithDelay, (msg) => {
@@ -355,7 +360,8 @@ function App() {
         setGifUrl(url);
       } else {
         // Image mode: use existing images
-        const url = await processImagesToGif(ffmpeg, images, settings, (msg) => {
+        const settingsWithOverlay = { ...settings, overlay: overlaySettings };
+        const url = await processImagesToGif(ffmpeg, images, settingsWithOverlay, (msg) => {
           setProgressMsg(msg);
         });
         setGifUrl(url);
@@ -542,6 +548,13 @@ function App() {
             inputMode={inputMode}
             videoFps={videoSettings.fps}
             onVideoFpsChange={handleFpsChange}
+          />
+
+          {/* Overlay Settings */}
+          <OverlaySettings
+            config={overlaySettings}
+            onChange={setOverlaySettings}
+            disabled={isGenerating}
           />
         </section>
 
