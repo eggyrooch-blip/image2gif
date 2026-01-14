@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Image, Video } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const faqData = [
+// General FAQs (applicable to both images and videos)
+const generalFaqs = [
     {
         q: "Do you add a watermark to exported GIFs?",
         a: "No. Every GIF you create is exported without any watermark, logo, or attribution. What you make is what you get.",
@@ -10,9 +11,9 @@ const faqData = [
         a_cn: "不会。你创建的每个 GIF 导出时都没有任何水印、logo 或署名要求。"
     },
     {
-        q: "Is this Image to GIF Maker free to use?",
+        q: "Is this GIF Maker free to use?",
         a: "Yes. It's free with no premium tier, no trial period, and no hidden fees. You can use all features without paying.",
-        q_cn: "这个图片转 GIF 工具是免费的吗？",
+        q_cn: "这个 GIF 制作工具是免费的吗？",
         a_cn: "是的。完全免费，没有高级版，没有试用期，没有隐藏费用。"
     },
     {
@@ -22,22 +23,38 @@ const faqData = [
         a_cn: "不需要。你可以立即开始创建 GIF——无需邮箱、密码或账户。"
     },
     {
-        q: "What are the limits (file size / number of images)?",
-        a: "For best results, we recommend keeping total input under 100 MB and using fewer than 100 images per GIF. Larger batches may slow down or fail on lower-end devices.",
-        q_cn: "有什么限制（文件大小/图片数量）？",
-        a_cn: "为获得最佳效果，建议总输入文件小于 100 MB，每个 GIF 使用少于 100 张图片。"
-    },
-    {
         q: "How long do you keep uploaded files?",
-        a: "We don't keep your files at all. Processing happens locally in your browser—images are never sent to our servers.",
+        a: "We don't keep your files at all. Processing happens locally in your browser—files are never sent to our servers.",
         q_cn: "你们保留上传的文件多久？",
-        a_cn: "我们根本不保留你的文件。处理在你的浏览器本地进行——图片从不发送到我们的服务器。"
+        a_cn: "我们根本不保留你的文件。处理在你的浏览器本地进行——文件从不发送到我们的服务器。"
     },
     {
         q: "Are uploads used for training AI or shared with third parties?",
         a: "No. Your files stay in your browser. We have no access to them, so they can't be used for training or shared with anyone.",
         q_cn: "上传的文件会被用于训练 AI 或分享给第三方吗？",
         a_cn: "不会。你的文件留在你的浏览器中。我们无法访问它们。"
+    },
+    {
+        q: "Will my GIF work on X/Discord/Telegram?",
+        a: "Standard GIFs work on most platforms. For best compatibility: keep file size under 5 MB for X, 8 MB for Discord.",
+        q_cn: "我的 GIF 能在 X/Discord/Telegram 上使用吗？",
+        a_cn: "标准 GIF 在大多数平台上都能用。建议：X 小于 5 MB，Discord 小于 8 MB。"
+    },
+    {
+        q: "What can I upload (copyright & responsibility)?",
+        a: "You're responsible for ensuring you have the right to use any content you upload. Only use content you own or have permission to use.",
+        q_cn: "我可以上传什么（版权与责任）？",
+        a_cn: "你有责任确保你有权使用上传的任何内容。只使用你拥有或有权使用的内容。"
+    }
+];
+
+// Image-specific FAQs
+const imageFaqs = [
+    {
+        q: "What are the limits (file size / number of images)?",
+        a: "For best results, we recommend keeping total input under 100 MB and using fewer than 100 images per GIF. Larger batches may slow down or fail on lower-end devices.",
+        q_cn: "有什么限制（文件大小/图片数量）？",
+        a_cn: "为获得最佳效果，建议总输入文件小于 100 MB，每个 GIF 使用少于 100 张图片。"
     },
     {
         q: "Why does my GIF look blurry?",
@@ -62,20 +79,11 @@ const faqData = [
         a: "This usually happens when total file size is too large for your browser's memory. Try reducing image count or size, and refresh the page.",
         q_cn: "为什么导出失败或卡住了？",
         a_cn: "这通常发生在总文件大小超出浏览器内存时。尝试减少图片数量或大小，然后刷新页面。"
-    },
-    {
-        q: "Will my GIF work on X/Discord/Telegram?",
-        a: "Standard GIFs work on most platforms. For best compatibility: keep file size under 5 MB for X, 8 MB for Discord.",
-        q_cn: "我的 GIF 能在 X/Discord/Telegram 上使用吗？",
-        a_cn: "标准 GIF 在大多数平台上都能用。建议：X 小于 5 MB，Discord 小于 8 MB。"
-    },
-    {
-        q: "What can I upload (copyright & responsibility)?",
-        a: "You're responsible for ensuring you have the right to use any images you upload. Only use content you own or have permission to use.",
-        q_cn: "我可以上传什么（版权与责任）？",
-        a_cn: "你有责任确保你有权使用上传的任何图片。只使用你拥有或有权使用的内容。"
-    },
-    // Video-related FAQs
+    }
+];
+
+// Video-specific FAQs
+const videoFaqs = [
     {
         q: "What video formats are supported?",
         a: "MP4, WebM, MOV, AVI, MKV, and FLV. Most common video files will work. If yours doesn't, try converting to MP4 first.",
@@ -146,18 +154,56 @@ function FAQItem({ item, isOpen, onToggle, lang }) {
         <div className="border-b border-gray-200 last:border-b-0">
             <button
                 onClick={onToggle}
-                className="w-full py-4 px-1 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-lg"
+                className="w-full py-3 px-1 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-lg"
             >
-                <span className="font-medium text-gray-900 pr-4">{question}</span>
+                <span className="font-medium text-gray-900 pr-4 text-sm">{question}</span>
                 {isOpen ? (
-                    <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                    <ChevronUp className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                    <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 )}
             </button>
             {isOpen && (
-                <div className="pb-4 px-1 text-gray-600 leading-relaxed animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="pb-3 px-1 text-gray-600 leading-relaxed text-sm animate-in fade-in slide-in-from-top-2 duration-200">
                     {answer}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function FAQSection({ title, titleCn, icon: Icon, faqs, color, openIndex, onToggle, indexOffset, lang }) {
+    const [isExpanded, setIsExpanded] = useState(true);
+    const displayTitle = lang === 'zh' ? titleCn : title;
+
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className={`w-full px-4 py-3 flex items-center justify-between bg-gradient-to-r ${color} text-white font-semibold`}
+            >
+                <div className="flex items-center gap-2">
+                    <Icon className="w-5 h-5" />
+                    <span>{displayTitle}</span>
+                    <span className="text-xs opacity-80">({faqs.length})</span>
+                </div>
+                {isExpanded ? (
+                    <ChevronUp className="w-5 h-5" />
+                ) : (
+                    <ChevronDown className="w-5 h-5" />
+                )}
+            </button>
+            {isExpanded && (
+                <div className="divide-y divide-gray-200 px-3">
+                    {faqs.map((item, index) => (
+                        <FAQItem
+                            key={index}
+                            item={item}
+                            isOpen={openIndex === indexOffset + index}
+                            onToggle={() => onToggle(indexOffset + index)}
+                            lang={lang}
+                        />
+                    ))}
                 </div>
             )}
         </div>
@@ -185,16 +231,45 @@ export default function FAQ() {
                 </p>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-200 shadow-sm">
-                {faqData.map((item, index) => (
-                    <FAQItem
-                        key={index}
-                        item={item}
-                        isOpen={openIndex === index}
-                        onToggle={() => handleToggle(index)}
-                        lang={language}
-                    />
-                ))}
+            <div className="space-y-4">
+                {/* General FAQs */}
+                <FAQSection
+                    title="General"
+                    titleCn="通用问题"
+                    icon={ChevronDown}
+                    faqs={generalFaqs}
+                    color="from-gray-600 to-gray-700"
+                    openIndex={openIndex}
+                    onToggle={handleToggle}
+                    indexOffset={0}
+                    lang={language}
+                />
+
+                {/* Image FAQs */}
+                <FAQSection
+                    title="Images to GIF"
+                    titleCn="图片转 GIF"
+                    icon={Image}
+                    faqs={imageFaqs}
+                    color="from-blue-500 to-blue-600"
+                    openIndex={openIndex}
+                    onToggle={handleToggle}
+                    indexOffset={generalFaqs.length}
+                    lang={language}
+                />
+
+                {/* Video FAQs */}
+                <FAQSection
+                    title="Video to GIF"
+                    titleCn="视频转 GIF"
+                    icon={Video}
+                    faqs={videoFaqs}
+                    color="from-purple-500 to-purple-600"
+                    openIndex={openIndex}
+                    onToggle={handleToggle}
+                    indexOffset={generalFaqs.length + imageFaqs.length}
+                    lang={language}
+                />
             </div>
         </section>
     );

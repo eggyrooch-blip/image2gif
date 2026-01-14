@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import LandingPage from './components/LandingPage.jsx'
+import NotFound from './components/NotFound.jsx'
 import { LanguageProvider } from './contexts/LanguageContext'
 
 // Landing page wrapper component to pass pageKey
@@ -26,6 +27,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/video-to-gif" element={<LandingPageWrapper pageKey="video-to-gif" />} />
           <Route path="/mp4-to-gif" element={<LandingPageWrapper pageKey="mp4-to-gif" />} />
           <Route path="/screen-recording-to-gif" element={<LandingPageWrapper pageKey="screen-recording-to-gif" />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </LanguageProvider>
