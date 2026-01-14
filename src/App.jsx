@@ -44,6 +44,11 @@ function App() {
     delay: 500,
     width: 1920,
     height: null,
+    compression: 'light',
+    loop: 0,
+    dither: 'bayer',
+    fillColor: 'black',
+    crossfadeEnabled: false,
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressMsg, setProgressMsg] = useState('');

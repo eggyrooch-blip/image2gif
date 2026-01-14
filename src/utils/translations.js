@@ -52,6 +52,12 @@ export const translations = {
             compressionHeavy: "Heavy (64 colors, smallest)",
         },
         presets: {
+            common: {
+                social: { name: "Social Media", desc: "2K / 120ms / smooth" },
+                highQuality: { name: "High Quality", desc: "4K, sharp & silky" },
+                tutorial: { name: "Tutorial", desc: "2K, clean UI text" },
+                smallFile: { name: "Small File", desc: "HD, 180ms, tiny" }
+            },
             video: {
                 social: {
                     name: "Social Media",
@@ -215,6 +221,12 @@ export const translations = {
             compressionHeavy: "重度（64色，最小体积）",
         },
         presets: {
+            common: {
+                social: { name: "社交媒体", desc: "2K 120ms 更顺滑" },
+                highQuality: { name: "超高质量", desc: "4K 锐利顺滑" },
+                tutorial: { name: "教程", desc: "2K 干净文字" },
+                smallFile: { name: "小文件", desc: "HD 180ms 更省体积" }
+            },
             video: {
                 social: {
                     name: "社交媒体",
@@ -326,5 +338,3 @@ export const translations = {
         },
     },
 };
-
-

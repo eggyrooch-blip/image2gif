@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Settings, ChevronDown, ChevronUp, Zap, Sparkles, Crown, Rocket, Maximize, HardDrive, Twitter, Star, Monitor, Package } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -10,43 +10,91 @@ const QUALITY_PRESETS = [
     { id: 'original', width: 0, icon: Maximize, descKey: 'original' },
 ];
 
-// Video quick presets
-const VIDEO_PRESETS = [
+// Shared quick presets (names/descriptions reused across modes)
+const QUICK_PRESETS = [
     {
         id: 'social',
         icon: Twitter,
-        fps: 10,
-        width: 1280,
-        compression: 'light',
-        dither: 'bayer',
-        loop: 0
+        nameKey: 'presets.common.social.name',
+        descKey: 'presets.common.social.desc',
+        image: {
+            qualityId: 'full_hd',
+            delay: 120,
+            loop: 0,
+            dither: 'floyd_steinberg',
+            fillColor: 'black',
+            compression: 'medium'
+        },
+        video: {
+            fps: 10,
+            width: 1280,
+            compression: 'light',
+            dither: 'bayer',
+            loop: 0
+        }
     },
     {
         id: 'highQuality',
         icon: Star,
-        fps: 24,
-        width: 0, // original
-        compression: 'none',
-        dither: 'floyd_steinberg',
-        loop: 0
+        nameKey: 'presets.common.highQuality.name',
+        descKey: 'presets.common.highQuality.desc',
+        image: {
+            qualityId: 'ultra',
+            delay: 100,
+            loop: 0,
+            dither: 'sierra2',
+            fillColor: 'black',
+            compression: 'none'
+        },
+        video: {
+            fps: 24,
+            width: 0, // original
+            compression: 'none',
+            dither: 'floyd_steinberg',
+            loop: 0
+        }
     },
     {
         id: 'tutorial',
         icon: Monitor,
-        fps: 10,
-        width: 1920,
-        compression: 'light',
-        dither: 'none',
-        loop: 1
+        nameKey: 'presets.common.tutorial.name',
+        descKey: 'presets.common.tutorial.desc',
+        image: {
+            qualityId: 'full_hd',
+            delay: 160,
+            loop: 0,
+            dither: 'none',
+            fillColor: 'white',
+            compression: 'light'
+        },
+        video: {
+            fps: 10,
+            width: 1920,
+            compression: 'light',
+            dither: 'none',
+            loop: 1
+        }
     },
     {
         id: 'smallFile',
         icon: Package,
-        fps: 5,
-        width: 1280,
-        compression: 'medium',
-        dither: 'bayer',
-        loop: 3
+        nameKey: 'presets.common.smallFile.name',
+        descKey: 'presets.common.smallFile.desc',
+        image: {
+            qualityId: 'hd',
+            delay: 180,
+            loop: 0,
+            dither: 'bayer',
+            fillColor: 'black',
+            compression: 'heavy'
+        },
+        video: {
+            fps: 5,
+            width: 1280,
+            compression: 'medium',
+            dither: 'bayer',
+            loop: 3
+        }
     }
 ];
 
@@ -105,6 +153,71 @@ const SettingsPanel = ({
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [selectedPreset, setSelectedPreset] = useState('hd');
     const [activeVideoPreset, setActiveVideoPreset] = useState(null);
+    const [activeImagePreset, setActiveImagePreset] = useState(null);
+    const [highlightedFields, setHighlightedFields] = useState([]);
+    const [presetFeedback, setPresetFeedback] = useState(null);
+    const highlightTimerRef = useRef(null);
+    const feedbackTimerRef = useRef(null);
+
+    const quickPresetsForMode = useMemo(() => {
+        return QUICK_PRESETS.filter(p => inputMode === 'video' ? p.video : p.image);
+    }, [inputMode]);
+
+    const clearTimer = (ref) => {
+        if (ref.current) {
+            clearTimeout(ref.current);
+            ref.current = null;
+        }
+    };
+
+    const triggerHighlight = (fields = []) => {
+        setHighlightedFields(fields);
+        clearTimer(highlightTimerRef);
+        if (fields.length === 0) return;
+        highlightTimerRef.current = setTimeout(() => setHighlightedFields([]), 420);
+    };
+
+    const showPresetFeedback = (presetId) => {
+        const preset = QUICK_PRESETS.find(p => p.id === presetId);
+        if (!preset) return;
+        const msg = t('settings.presetApplied', { name: t(preset.nameKey) });
+        setPresetFeedback(msg);
+        clearTimer(feedbackTimerRef);
+        feedbackTimerRef.current = setTimeout(() => setPresetFeedback(null), 1200);
+    };
+
+    useEffect(() => {
+        return () => {
+            clearTimer(highlightTimerRef);
+            clearTimer(feedbackTimerRef);
+        };
+    }, []);
+
+    const isHighlighted = (field) => highlightedFields.includes(field);
+
+    const highlightClass = (field) => isHighlighted(field)
+        ? 'ring-2 ring-blue-200 bg-blue-50/40 rounded-lg transition-all duration-200'
+        : '';
+
+    const resolveQualityWidth = (presetId) => {
+        const preset = QUALITY_PRESETS.find(p => p.id === presetId);
+        if (!preset) return null;
+        if (presetId === 'original') {
+            if (originalDimensions?.width) {
+                return originalDimensions.width;
+            }
+            return null;
+        }
+        if (preset.width > 0) return preset.width;
+        return null;
+    };
+
+    const applyQualitySelection = (presetId, baseWidth = settings.width) => {
+        setSelectedPreset(presetId);
+        const resolvedWidth = resolveQualityWidth(presetId);
+        if (resolvedWidth) return resolvedWidth;
+        return baseWidth;
+    };
 
     // Calculate frame delay from FPS for video mode
     const calculatedFrameDelay = useMemo(() => {
@@ -126,60 +239,123 @@ const SettingsPanel = ({
                 onSettingsChange({ ...settings, ...videoDefaults });
             }
         }
+        if (inputMode === 'images') {
+            if (settings.loop === undefined || settings.loop === 1) {
+                onSettingsChange({ ...settings, loop: 0 });
+            }
+        }
     }, [inputMode]);
 
     const handleChange = (key, value) => {
         setActiveVideoPreset(null); // Clear preset selection when manually changing
+        setActiveImagePreset(null);
         onSettingsChange({ ...settings, [key]: value });
     };
 
     const handlePresetChange = (presetId) => {
-        setSelectedPreset(presetId);
         setActiveVideoPreset(null);
-        const preset = QUALITY_PRESETS.find(p => p.id === presetId);
-        if (preset) {
-            if (presetId === 'original' && originalDimensions) {
-                handleChange('width', originalDimensions.width);
-            } else if (preset.width > 0) {
-                handleChange('width', preset.width);
-            }
+        setActiveImagePreset(null);
+        const resolvedWidth = applyQualitySelection(presetId);
+        if (resolvedWidth) {
+            handleChange('width', resolvedWidth);
         }
     };
 
-    const handleVideoPresetApply = (preset) => {
-        setActiveVideoPreset(preset.id);
+    const applyQuickPreset = (presetId) => {
+        const preset = QUICK_PRESETS.find(p => p.id === presetId);
+        if (!preset) return;
 
-        // Determine width
-        let width = preset.width;
-        if (preset.width === 0 && originalDimensions) {
-            width = originalDimensions.width;
-            setSelectedPreset('original');
+        const modeConfig = inputMode === 'video' ? preset.video : preset.image;
+        if (!modeConfig) return;
+
+        const mergedConfig = { ...(preset.common || {}), ...modeConfig };
+        let nextSettings = { ...settings };
+        const changedFields = [];
+
+        if (inputMode === 'images') {
+            if (mergedConfig.qualityId) {
+                const widthFromQuality = applyQualitySelection(mergedConfig.qualityId, nextSettings.width);
+                if (widthFromQuality) {
+                    nextSettings.width = widthFromQuality;
+                    changedFields.push('width');
+                }
+            }
+            if (typeof mergedConfig.width === 'number') {
+                nextSettings.width = mergedConfig.width;
+                setSelectedPreset('custom');
+                changedFields.push('width');
+            }
+            if (mergedConfig.delay !== undefined) {
+                nextSettings.delay = mergedConfig.delay;
+                changedFields.push('delay');
+            }
+            if (mergedConfig.loop !== undefined) {
+                nextSettings.loop = mergedConfig.loop;
+                changedFields.push('loop');
+                if (mergedConfig.loop !== 0) {
+                    nextSettings.crossfadeEnabled = false;
+                }
+            }
+            if (mergedConfig.dither) {
+                nextSettings.dither = mergedConfig.dither;
+                changedFields.push('dither');
+            }
+            if (mergedConfig.fillColor) {
+                nextSettings.fillColor = mergedConfig.fillColor;
+                changedFields.push('fillColor');
+            }
+            if (mergedConfig.compression) {
+                nextSettings.compression = mergedConfig.compression;
+                changedFields.push('compression');
+            }
+
+            setActiveImagePreset(presetId);
+            setActiveVideoPreset(null);
         } else {
-            const qualityPreset = QUALITY_PRESETS.find(p => p.width === preset.width);
-            if (qualityPreset) {
-                setSelectedPreset(qualityPreset.id);
+            if (typeof mergedConfig.width === 'number') {
+                let widthToApply = mergedConfig.width;
+                if (mergedConfig.width === 0 && originalDimensions?.width) {
+                    widthToApply = originalDimensions.width;
+                    setSelectedPreset('original');
+                } else {
+                    const qualityPreset = QUALITY_PRESETS.find(p => p.width === mergedConfig.width);
+                    if (qualityPreset) {
+                        setSelectedPreset(qualityPreset.id);
+                    }
+                }
+                if (widthToApply) {
+                    nextSettings.width = widthToApply;
+                    changedFields.push('width');
+                }
+            }
+            if (mergedConfig.compression) {
+                nextSettings.compression = mergedConfig.compression;
+                changedFields.push('compression');
+            }
+            if (mergedConfig.dither) {
+                nextSettings.dither = mergedConfig.dither;
+                changedFields.push('dither');
+            }
+            if (mergedConfig.loop !== undefined) {
+                nextSettings.loop = mergedConfig.loop;
+                changedFields.push('loop');
+                nextSettings.crossfadeEnabled = mergedConfig.loop === 0 ? settings.crossfadeEnabled : false;
+            }
+            if (mergedConfig.fps && onVideoFpsChange) {
+                onVideoFpsChange(mergedConfig.fps);
+            }
+
+            setActiveVideoPreset(presetId);
+            setActiveImagePreset(null);
+
+            if (onVideoPresetApply) {
+                onVideoPresetApply({ ...mergedConfig, id: presetId });
             }
         }
 
-        // Apply all settings
-        onSettingsChange({
-            ...settings,
-            width: width || settings.width,
-            compression: preset.compression,
-            dither: preset.dither,
-            loop: preset.loop,
-            crossfadeEnabled: preset.loop === 0 ? settings.crossfadeEnabled : false
-        });
-
-        // Apply FPS change
-        if (onVideoFpsChange) {
-            onVideoFpsChange(preset.fps);
-        }
-
-        // Notify parent
-        if (onVideoPresetApply) {
-            onVideoPresetApply(preset);
-        }
+        onSettingsChange(nextSettings);
+        showPresetFeedback(presetId);
+        triggerHighlight(changedFields);
     };
 
     const estimatedHeight = useMemo(() => {
@@ -218,19 +394,18 @@ const SettingsPanel = ({
             </div>
 
             <div className="p-6 space-y-8">
-                {/* Video Quick Presets - Only shown in video mode */}
-                {inputMode === 'video' && (
+                {/* Quick Presets - Mode aware */}
+                {quickPresetsForMode.length > 0 && (
                     <div className="space-y-3">
                         <label className="text-sm font-bold text-gray-700">{t('settings.quickPresets')}</label>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {VIDEO_PRESETS.map((preset) => {
+                            {quickPresetsForMode.map((preset) => {
                                 const Icon = preset.icon;
-                                const isActive = activeVideoPreset === preset.id;
-
+                                const isActive = (inputMode === 'video' ? activeVideoPreset : activeImagePreset) === preset.id;
                                 return (
                                     <button
                                         key={preset.id}
-                                        onClick={() => handleVideoPresetApply(preset)}
+                                        onClick={() => applyQuickPreset(preset.id)}
                                         className={`p-3 rounded-xl border transition-all text-left group ${isActive
                                             ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
                                             : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
@@ -238,29 +413,37 @@ const SettingsPanel = ({
                                     >
                                         <div className="flex items-center gap-2 mb-1.5">
                                             <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-500'}`} />
-                                            <span className={`text-sm font-semibold ${isActive ? 'text-blue-700' : 'text-gray-700'}`}>
-                                                {t(`presets.video.${preset.id}.name`)}
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className={`text-sm font-semibold ${isActive ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                    {t(preset.nameKey)}
+                                                </span>
+                                                {isActive && (
+                                                    <span className="text-[11px] text-blue-600 font-semibold">Applied ✓</span>
+                                                )}
+                                            </div>
                                         </div>
                                         <p className="text-xs text-gray-500">
-                                            {t(`presets.video.${preset.id}.desc`)}
+                                            {t(preset.descKey)}
                                         </p>
                                     </button>
                                 );
                             })}
                         </div>
-                        {activeVideoPreset && (
-                            <p className="text-xs text-green-600 bg-green-50 px-3 py-2 rounded-lg border-l-4 border-green-400">
-                                ✓ {t('settings.presetApplied', { name: t(`presets.video.${activeVideoPreset}.name`) })}
+                        {presetFeedback && (
+                            <p
+                                className="text-xs text-green-600 bg-green-50 px-3 py-2 rounded-lg border-l-4 border-green-400"
+                                aria-live="polite"
+                            >
+                                ✓ {presetFeedback}
                             </p>
                         )}
                     </div>
                 )}
 
-                {inputMode === 'video' && <div className="h-px bg-gray-100" />}
+                <div className="h-px bg-gray-100" />
 
                 {/* Quality Presets */}
-                <div className="space-y-3">
+                <div className={`space-y-3 ${highlightClass('width')}`}>
                     <label className="text-sm font-bold text-gray-700">{t('settings.quality')}</label>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                         {QUALITY_PRESETS.map((preset) => {
@@ -306,7 +489,7 @@ const SettingsPanel = ({
                 {/* Basic Settings */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     {/* Frame Delay - Different display for video vs image mode */}
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${highlightClass('delay')}`}>
                         <label className="text-sm font-bold text-gray-700 block">{t('settings.delay')}</label>
                         {inputMode === 'video' ? (
                             // Video mode: Read-only, auto-calculated
@@ -341,7 +524,7 @@ const SettingsPanel = ({
 
                     {/* Custom Width - Hidden in video mode (use presets) */}
                     {inputMode !== 'video' && (
-                        <div className="space-y-2">
+                        <div className={`space-y-2 ${highlightClass('width')}`}>
                             <label className="text-sm font-bold text-gray-700 block">{t('settings.width')}</label>
                             <div className="relative">
                                 <input
@@ -360,7 +543,7 @@ const SettingsPanel = ({
                     )}
 
                     {/* Loop Count */}
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${highlightClass('loop')}`}>
                         <label className="text-sm font-bold text-gray-700 block">{t('settings.loop')}</label>
                         <select
                             value={settings.loop ?? (inputMode === 'video' ? 1 : 0)}
@@ -383,7 +566,7 @@ const SettingsPanel = ({
                     </div>
 
                     {/* Dithering */}
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${highlightClass('dither')}`}>
                         <label className="text-sm font-bold text-gray-700 block">{t('settings.dither')}</label>
                         <select
                             value={settings.dither ?? 'bayer'}
@@ -405,7 +588,7 @@ const SettingsPanel = ({
                     </div>
 
                     {/* Fill Color */}
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${highlightClass('fillColor')}`}>
                         <label className="text-sm font-bold text-gray-700 block">{t('settings.fillColor')}</label>
                         <div className="flex gap-2">
                             <button
@@ -432,10 +615,10 @@ const SettingsPanel = ({
                     </div>
 
                     {/* GIF Compression */}
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${highlightClass('compression')}`}>
                         <label className="text-sm font-bold text-gray-700 block">{t('settings.compression') || 'Compression'}</label>
                         <select
-                            value={settings.compression ?? (inputMode === 'video' ? 'light' : 'none')}
+                            value={settings.compression ?? 'light'}
                             onChange={(e) => handleChange('compression', e.target.value)}
                             className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none"
                             style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
@@ -445,9 +628,9 @@ const SettingsPanel = ({
                             <option value="medium">{t('settings.compressionMedium') || 'Medium (128 colors, lower fps)'}</option>
                             <option value="heavy">{t('settings.compressionHeavy') || 'Heavy (64 colors, lowest fps)'}</option>
                         </select>
-                        {getParamHint('compression', settings.compression ?? (inputMode === 'video' ? 'light' : 'none'), t) && (
+                        {getParamHint('compression', settings.compression ?? 'light', t) && (
                             <p className="text-xs text-blue-600 bg-blue-50 px-2 py-1.5 rounded border-l-4 border-blue-400">
-                                {getParamHint('compression', settings.compression ?? (inputMode === 'video' ? 'light' : 'none'), t)}
+                                {getParamHint('compression', settings.compression ?? 'light', t)}
                             </p>
                         )}
                     </div>
