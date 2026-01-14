@@ -45,11 +45,11 @@ const buildJsonLd = (routeObj, data) => {
     routePath === '/'
       ? 'GIF Maker'
       : data.categoryLabel ||
-        (routeObj.category === 'video-to-gif'
-          ? 'Video to GIF Tools'
-          : routeObj.category === 'gif-optimization'
-            ? 'GIF Optimization'
-            : 'Image to GIF Tools');
+      (routeObj.category === 'video-to-gif'
+        ? 'Video to GIF Tools'
+        : routeObj.category === 'gif-optimization'
+          ? 'GIF Optimization'
+          : 'Image to GIF Tools');
 
   breadcrumbs.push({
     '@type': 'ListItem',
@@ -90,10 +90,10 @@ const buildJsonLd = (routeObj, data) => {
 
   const faq = faqEntities.length
     ? {
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        mainEntity: faqEntities,
-      }
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqEntities,
+    }
     : null;
 
   const breadcrumb = {
@@ -108,7 +108,7 @@ const buildJsonLd = (routeObj, data) => {
 const buildSEOBlock = (route, data) => {
   const relatedLinks = (data.relatedLinks || []).slice(0, 8);
   const featuresHtml = (data.features || [])
-    .map((f) => `<li><strong>${escapeHtml(f.split('—')[0] || f)}</strong> - ${escapeHtml(f)}</li>`)
+    .map((f) => `<li>${escapeHtml(f)}</li>`)
     .join('\n');
   const faqHtml = (data.faq || [])
     .map(
@@ -126,7 +126,7 @@ const buildSEOBlock = (route, data) => {
     .join('\n');
 
   return `
-  <section id="seo-content" aria-label="SEO content" class="seo-content">
+  <section id="seo-content" aria-label="SEO content" class="seo-content" style="position:absolute;left:-9999px;height:1px;width:1px;overflow:hidden;">
     <h1>${escapeHtml(data.h1 || data.title)}</h1>
     ${paragraphsHtml}
     <h2>Key benefits</h2>
