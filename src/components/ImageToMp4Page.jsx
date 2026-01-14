@@ -60,8 +60,8 @@ const ImageToMp4Page = () => {
     const isZh = language === 'zh';
     const copy = {
         en: {
-            title: 'Image to MP4 Converter',
-            sub: 'Stack images into a smooth MP4 in your browser. No uploads, no watermark.',
+            title: 'Image to MP4',
+            sub: 'Turn images into MP4 locally. Secure, no uploads.',
             presetsTitle: 'Quick presets',
             settingsTitle: 'Configure',
             uploadTitle: '1) Add images',
@@ -97,8 +97,8 @@ const ImageToMp4Page = () => {
             durationLabel: 'Duration',
         },
         zh: {
-            title: '图片转 MP4 转换器',
-            sub: '在浏览器内把多张图片合成为流畅 MP4，无需上传、无水印。',
+            title: '图片转 MP4',
+            sub: '纯前端多图合成 MP4，保护隐私，无水印。',
             presetsTitle: '快速预设',
             settingsTitle: '参数设置',
             uploadTitle: '1) 添加图片',
@@ -353,33 +353,17 @@ const ImageToMp4Page = () => {
 
     return (
         <Layout>
-            <div className="max-w-4xl mx-auto space-y-12 pb-24">
+            <div className="max-w-4xl mx-auto space-y-8 pb-20">
                 <ToolTabs />
 
                 {/* Hero Section */}
-                <section className="relative isolate text-center py-8 -mx-4 px-4 overflow-hidden">
-                    {/* Background decorative blob */}
-                    <div
-                        className="absolute inset-x-0 -top-20 -z-10 transform-gpu overflow-hidden blur-3xl"
-                        aria-hidden="true"
-                    >
-                        <div
-                            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#80b5ff] to-[#89fcb5] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                            style={{
-                                clipPath:
-                                    'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-                            }}
-                        />
-                    </div>
-                    <p className="text-sm font-semibold text-blue-600 bg-blue-50 inline-flex px-3 py-1 rounded-full mb-4">
-                        {isZh ? '本地处理 · 无水印 · 免费' : 'Local processing · No watermark · Free'}
-                    </p>
-                    <h1 className="text-4xl font-black tracking-tight text-gray-900 sm:text-5xl mb-4">
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">
-                            {c.title}
-                        </span>
+                <section className="text-center py-8 px-4">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-4">
+                        {c.title}
                     </h1>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">{c.sub}</p>
+                    <p className="text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                        {c.sub}
+                    </p>
                 </section>
 
                 <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">

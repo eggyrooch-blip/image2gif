@@ -43,15 +43,14 @@ const CompressMp4Page = () => {
     const isZh = language === 'zh';
     const copy = {
         en: {
-            title: 'Compress MP4 Online',
-            sub: 'Shrink MP4 size with quality or resolution presets. No uploads, no watermark.',
+            title: 'Compress MP4',
+            sub: 'Secure, local compression in your browser. No file uploads, no watermarks.',
             uploadTitle: '1) Upload MP4',
-            controlsTitle: '2) Pick compression',
-            generateTitle: '3) Run compression',
-            qualityLabel: 'Quality mode',
-            resolutionLabel: 'Target resolution',
-            compressCta: 'Compress MP4',
-            badge: 'Local processing · Free · No watermark',
+            controlsTitle: '2) Compression Settings',
+            generateTitle: '3) Start Compression',
+            qualityLabel: 'Quality Mode',
+            resolutionLabel: 'Target Resolution',
+            compressCta: 'Compress Now',
             progress: {
                 loading: 'Loading engine (~30MB, cached)…',
                 prep: 'Preparing file…',
@@ -68,15 +67,14 @@ const CompressMp4Page = () => {
             reduction: 'Reduction',
         },
         zh: {
-            title: '在线压缩 MP4',
-            sub: '用质量/分辨率预设快速减小 MP4，纯前端，无水印。',
-            uploadTitle: '1) 上传 MP4',
-            controlsTitle: '2) 选择压缩方案',
+            title: 'MP4 视频压缩',
+            sub: '纯前端本地压缩，保护隐私，不上传文件。',
+            uploadTitle: '1) 上传视频',
+            controlsTitle: '2) 压缩设置',
             generateTitle: '3) 开始压缩',
-            qualityLabel: '质量档位',
+            qualityLabel: '质量模式',
             resolutionLabel: '目标分辨率',
-            compressCta: '压缩 MP4',
-            badge: '本地处理 · 免费 · 无水印',
+            compressCta: '开始压缩',
             progress: {
                 loading: '正在加载引擎（约 30MB，缓存后更快）…',
                 prep: '准备文件…',
@@ -283,33 +281,17 @@ const CompressMp4Page = () => {
 
     return (
         <Layout>
-            <div className="max-w-4xl mx-auto space-y-12 pb-24">
+            <div className="max-w-4xl mx-auto space-y-8 pb-20">
                 <ToolTabs />
 
                 {/* Hero Section */}
-                <section className="relative isolate text-center py-8 -mx-4 px-4 overflow-hidden">
-                    {/* Background decorative blob */}
-                    <div
-                        className="absolute inset-x-0 -top-20 -z-10 transform-gpu overflow-hidden blur-3xl"
-                        aria-hidden="true"
-                    >
-                        <div
-                            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#6ee7b7] to-[#3b82f6] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                            style={{
-                                clipPath:
-                                    'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-                            }}
-                        />
-                    </div>
-                    <p className="text-sm font-semibold text-emerald-700 bg-emerald-50 inline-flex px-3 py-1 rounded-full mb-4">
-                        {c.badge}
-                    </p>
-                    <h1 className="text-4xl font-black tracking-tight text-gray-900 sm:text-5xl mb-4">
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600">
-                            {c.title}
-                        </span>
+                <section className="text-center py-8 px-4">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-4">
+                        {c.title}
                     </h1>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">{c.sub}</p>
+                    <p className="text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                        {c.sub}
+                    </p>
                 </section>
 
                 <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
@@ -505,11 +487,11 @@ const CompressMp4Page = () => {
                                 { q: 'Why is it slow?', a: 'First load downloads FFmpeg (~30MB). Encoding large files takes longer in-browser.' },
                                 { q: 'How to get smaller files?', a: 'Pick Heavy + 720p/480p, trim duration before upload, or reduce source bitrate.' },
                             ]).map((item) => (
-                            <div key={item.q} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5 hover:shadow-md transition-shadow">
-                                <h3 className="font-semibold text-gray-900 text-lg leading-7 mb-2">{item.q}</h3>
-                                <p className="leading-7 text-gray-600">{item.a}</p>
-                            </div>
-                        ))}
+                                <div key={item.q} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5 hover:shadow-md transition-shadow">
+                                    <h3 className="font-semibold text-gray-900 text-lg leading-7 mb-2">{item.q}</h3>
+                                    <p className="leading-7 text-gray-600">{item.a}</p>
+                                </div>
+                            ))}
                     </div>
                 </section>
 

@@ -402,13 +402,11 @@ function App({ initialMode = 'images', lockMode = false }) {
 
   // Hero content based on mode
   const heroContent = inputMode === 'video' ? {
-    badge: language === 'zh' ? '本地处理 · 无水印 · 免费' : 'Local processing · No watermark · Free',
-    title: language === 'zh' ? '视频转 GIF 转换器' : 'Video to GIF Converter',
-    subtitle: language === 'zh' ? '在浏览器内把视频片段转为流畅 GIF，无需上传、无水印。' : 'Convert video clips to smooth GIFs in your browser. No upload, no watermark.',
+    title: language === 'zh' ? '视频转 GIF' : 'Video to GIF',
+    subtitle: language === 'zh' ? '纯前端本地视频转 GIF，保护隐私，无水印。' : 'Turn video clips into GIFs locally. Secure, no uploads.',
   } : {
-    badge: language === 'zh' ? '本地处理 · 无水印 · 免费' : 'Local processing · No watermark · Free',
-    title: language === 'zh' ? '图片转 GIF 转换器' : 'Image to GIF Converter',
-    subtitle: language === 'zh' ? '在浏览器内把多张图片合成为动画 GIF，无需上传、无水印。' : 'Create animated GIFs from images in your browser. No upload, no watermark.',
+    title: language === 'zh' ? '图片转 GIF' : 'Image to GIF',
+    subtitle: language === 'zh' ? '纯前端本地图片合成 GIF，保护隐私，无水印。' : 'Create GIFs from images locally. Secure, no uploads.',
   };
 
   return (
@@ -418,29 +416,13 @@ function App({ initialMode = 'images', lockMode = false }) {
         <ToolTabs />
 
         {/* Hero Section */}
-        <section className="relative isolate text-center py-8 -mx-4 px-4 overflow-hidden">
-          {/* Background decorative blob */}
-          <div
-            className="absolute inset-x-0 -top-20 -z-10 transform-gpu overflow-hidden blur-3xl"
-            aria-hidden="true"
-          >
-            <div
-              className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#80b5ff] to-[#89fcb5] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-              style={{
-                clipPath:
-                  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-              }}
-            />
-          </div>
-          <p className="text-sm font-semibold text-blue-600 bg-blue-50 inline-flex px-3 py-1 rounded-full mb-4">
-            {heroContent.badge}
-          </p>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 sm:text-5xl mb-4">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">
-              {heroContent.title}
-            </span>
+        <section className="text-center py-8 px-4">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-4">
+            {heroContent.title}
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{heroContent.subtitle}</p>
+          <p className="text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
+            {heroContent.subtitle}
+          </p>
         </section>
 
         {/* Step 1: Input */}
