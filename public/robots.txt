@@ -1,0 +1,8 @@
+# Universal GIF Maker - https://plotlake.com
+# Allow all crawlers
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://plotlake.com/sitemap.xml
