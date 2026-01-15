@@ -45,6 +45,42 @@ const generalFaqs = [
         a: "You're responsible for ensuring you have the right to use any content you upload. Only use content you own or have permission to use.",
         q_cn: "我可以上传什么（版权与责任）？",
         a_cn: "你有责任确保你有权使用上传的任何内容。只使用你拥有或有权使用的内容。"
+    },
+    {
+        q: "Do you support HEIC/HEIF from iPhone?",
+        a: "Yes! Drop HEIC/HEIF photos directly. They're converted to PNG automatically. If your browser doesn't support HEIC, try Safari on iOS or convert to JPG first.",
+        q_cn: "支持 iPhone 的 HEIC/HEIF 格式吗？",
+        a_cn: "支持！直接拖入 HEIC/HEIF 照片，会自动转换为 PNG。如果浏览器不支持，可以使用 iOS Safari 或先转换为 JPG。"
+    },
+    {
+        q: "Can I drop a folder of images?",
+        a: "Yes! Drag a folder onto the upload area. Images are sorted by filename (natural order: img_001, img_002...). Non-image files are ignored.",
+        q_cn: "可以拖入文件夹吗？",
+        a_cn: "可以！将文件夹拖到上传区域。图片按文件名自然排序（img_001, img_002...），非图片文件会被忽略。"
+    },
+    {
+        q: "Can I export Animated WebP?",
+        a: "Yes! Select 'WebP' as output format. WebP is typically 60% smaller than GIF with better quality. Most modern browsers support it.",
+        q_cn: "可以导出动态 WebP 吗？",
+        a_cn: "可以！选择 'WebP' 作为输出格式。WebP 通常比 GIF 小 60%，质量更好。大多数现代浏览器都支持。"
+    },
+    {
+        q: "Can I export APNG?",
+        a: "Yes! Select 'APNG' as output format. APNG preserves full PNG quality without palette limitations - ideal for UI screenshots and text.",
+        q_cn: "可以导出 APNG 吗？",
+        a_cn: "可以！选择 'APNG' 作为输出格式。APNG 保留完整 PNG 质量，无调色板限制，非常适合 UI 截图和文字。"
+    },
+    {
+        q: "What's the difference between GIF, WebP, and APNG?",
+        a: "GIF: Universal support, 256 colors max. WebP: 60% smaller, better gradients, good browser support. APNG: Lossless like PNG, best for text/UI, less browser support than WebP.",
+        q_cn: "GIF、WebP 和 APNG 有什么区别？",
+        a_cn: "GIF：兼容性最好，最多 256 色。WebP：体积小 60%，渐变更好，浏览器支持良好。APNG：无损如 PNG，最适合文字/UI，浏览器支持不如 WebP。"
+    },
+    {
+        q: "Why can't my device decode HEIC?",
+        a: "HEIC decoding requires iOS/macOS Safari or Chrome on supported systems. Firefox and older browsers don't support HEIC natively. Convert to JPG first as fallback.",
+        q_cn: "为什么我的设备无法解码 HEIC？",
+        a_cn: "HEIC 解码需要 iOS/macOS Safari 或支持系统上的 Chrome。Firefox 和旧浏览器原生不支持 HEIC。可以先转换为 JPG。"
     }
 ];
 

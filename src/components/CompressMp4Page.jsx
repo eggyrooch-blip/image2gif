@@ -294,12 +294,12 @@ const CompressMp4Page = () => {
                     </p>
                 </section>
 
-                <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
-                    <h2 className="text-xl font-bold text-gray-900">{c.uploadTitle}</h2>
-                    <p className="text-sm text-gray-600">
-                        MP4 {isZh ? '（推荐 <60 秒）' : '(aim for <60s for stability)'}
-                    </p>
-                    <VideoDropZone onVideoSelected={handleVideoSelected} disabled={false} />
+                <section className="space-y-4">
+                    <VideoDropZone
+                        onVideoSelected={handleVideoSelected}
+                        disabled={false}
+                        className="min-h-[300px] border-dashed border-2 border-gray-300 hover:border-blue-500/50 bg-gray-50/50 hover:bg-white"
+                    />
                     {videoFile && (
                         <VideoPreview
                             file={videoFile}
@@ -311,46 +311,78 @@ const CompressMp4Page = () => {
                     )}
                 </section>
 
-                <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
-                    <h2 className="text-xl font-bold text-gray-900">{c.controlsTitle}</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">{c.qualityLabel}</label>
-                            <div className="flex flex-wrap gap-2">
-                                {['light', 'medium', 'heavy'].map((mode) => (
-                                    <button
-                                        key={mode}
-                                        onClick={() => setQuality(mode)}
-                                        className={`px-3 py-2 rounded-lg border text-sm ${quality === mode
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-gray-200 bg-white hover:border-blue-300'
-                                            }`}
-                                    >
-                                        {mode === 'light'
-                                            ? (isZh ? '轻度（平衡）' : 'Light (balanced)')
-                                            : mode === 'medium'
-                                                ? (isZh ? '中度（更小）' : 'Medium (smaller)')
-                                                : (isZh ? '重度（最小）' : 'Heavy (smallest)')}
-                                    </button>
-                                ))}
-                            </div>
+                {/* Settings Panel - Unified Style */}
+                <section className="space-y-6">
+                    <div className="text-left border-l-4 border-blue-600 pl-4">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                            {c.controlsTitle}
+                        </h2>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+                            <Play className="w-4 h-4 text-gray-400" />
+                            <h3 className="font-semibold text-gray-700">{c.controlsTitle}</h3>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">{c.resolutionLabel}</label>
-                            <div className="flex flex-wrap gap-2">
-                                {Object.keys(resolutionPresets).map((key) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => setResolution(key)}
-                                        className={`px-3 py-2 rounded-lg border text-sm ${resolution === key
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-gray-200 bg-white hover:border-blue-300'
-                                            }`}
-                                    >
-                                        {key === 'keep' ? (isZh ? '保持' : 'Keep') : key}
-                                    </button>
-                                ))}
+                        <div className="p-6 space-y-8">
+                            {/* Quality Mode */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-gray-700">{c.qualityLabel}</label>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {['light', 'medium', 'heavy'].map((mode) => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => setQuality(mode)}
+                                            className={`p-3 rounded-xl border transition-all text-left group ${quality === mode
+                                                ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                                                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                                                }`}
+                                        >
+                                            <div className={`text-sm font-semibold mb-1 ${quality === mode ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                {mode === 'light'
+                                                    ? (isZh ? '轻度' : 'Light')
+                                                    : mode === 'medium'
+                                                        ? (isZh ? '中度' : 'Medium')
+                                                        : (isZh ? '重度' : 'Heavy')}
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                {mode === 'light'
+                                                    ? (isZh ? '平衡质量与大小' : 'Balanced quality')
+                                                    : mode === 'medium'
+                                                        ? (isZh ? '更小文件' : 'Smaller file')
+                                                        : (isZh ? '最小文件' : 'Smallest file')}
+                                            </p>
+                                            {quality === mode && (
+                                                <span className="text-[11px] text-blue-600 font-semibold mt-1 inline-block">Applied ✓</span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="h-px bg-gray-100" />
+
+                            {/* Resolution */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-gray-700">{c.resolutionLabel}</label>
+                                <div className="grid grid-cols-4 gap-3">
+                                    {Object.keys(resolutionPresets).map((key) => (
+                                        <button
+                                            key={key}
+                                            onClick={() => setResolution(key)}
+                                            className={`p-3 rounded-xl border transition-all text-center group ${resolution === key
+                                                ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                                                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                                                }`}
+                                        >
+                                            <span className={`text-sm font-semibold ${resolution === key ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                {key === 'keep' ? (isZh ? '保持原始' : 'Keep') : key}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-gray-400">{isZh ? '降低分辨率可进一步减小文件大小' : 'Lower resolution for smaller file size'}</p>
                             </div>
                         </div>
                     </div>
@@ -363,47 +395,48 @@ const CompressMp4Page = () => {
                     disabled={phase === 'encoding'}
                 />
 
-                <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
-                    <h2 className="text-xl font-bold text-gray-900">{c.generateTitle}</h2>
-                    <div className="flex items-center gap-3">
+                {/* Generate Button - Sticky Style */}
+                <section className="space-y-6">
+                    <div className="pt-4 sticky bottom-6 z-40 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-white/50 ring-1 ring-gray-900/5">
                         <button
                             onClick={performCompression}
                             disabled={!videoFile || phase === 'encoding' || isLoading}
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-4 rounded-xl bg-gray-900 text-white font-bold text-lg hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+                            className="w-full py-5 bg-gray-900 hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed rounded-xl text-xl font-bold text-white shadow-xl transition-all flex items-center justify-center gap-3 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0"
                         >
                             {phase === 'encoding' ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-6 h-6 animate-spin" />
                                     {isZh ? '压缩中…' : 'Compressing…'}
                                 </>
                             ) : (
                                 <>
-                                    <Play className="w-5 h-5" />
-                                    {c.compressCta}
+                                    <Play className="w-6 h-6" />
+                                    {!videoFile ? (isZh ? '请先上传视频' : 'Upload video first') : c.compressCta}
                                 </>
                             )}
                         </button>
-                    </div>
 
-                    {(phase !== 'idle' || isLoading) && (
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>{progressText}</span>
-                                <span className="font-mono text-blue-600">{progressValue}%</span>
+                        {/* Progress Indicator */}
+                        {(phase !== 'idle' || isLoading) && (
+                            <div className="mt-4 space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="font-medium text-gray-700">{progressText}</span>
+                                    <span className="font-mono text-blue-600 font-bold">{progressValue}%</span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                    <div
+                                        className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out"
+                                        style={{ width: `${progressValue}%` }}
+                                    />
+                                </div>
+                                {phase === 'error' && (
+                                    <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
+                                        {error || c.errorHint}
+                                    </p>
+                                )}
                             </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                <div
-                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${progressValue}%` }}
-                                />
-                            </div>
-                            {phase === 'error' && (
-                                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                                    {error || c.errorHint}
-                                </p>
-                            )}
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </section>
 
                 {output && (

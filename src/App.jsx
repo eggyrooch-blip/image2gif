@@ -18,7 +18,7 @@ import TimeRangeSelector from './components/TimeRangeSelector';
 import { useFFmpeg } from './hooks/useFFmpeg';
 import { useEditHistory } from './hooks/useEditHistory';
 import { useVideoProcessor } from './hooks/useVideoProcessor';
-import { processImagesToGif } from './utils/ffmpegHelper';
+import { processImagesToFormat, getFormatExtension, getFormatLabel } from './utils/ffmpegHelper';
 import { getDefaultOverlayConfig } from './utils/overlayHelper';
 import { estimateFrameCount } from './utils/videoHelper';
 import { Loader2, Wand2, Undo2, Redo, X } from 'lucide-react';
@@ -53,6 +53,7 @@ function App({ initialMode = 'images', lockMode = false }) {
     dither: 'bayer',
     fillColor: 'black',
     crossfadeEnabled: false,
+    outputFormat: 'gif',
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressMsg, setProgressMsg] = useState('');
@@ -359,7 +360,7 @@ function App({ initialMode = 'images', lockMode = false }) {
         const settingsWithDelay = { ...settings, delay: videoDelay, overlay: overlaySettings };
 
         setProgressMsg(t('status.generating'));
-        const url = await processImagesToGif(ffmpeg, framesToProcess, settingsWithDelay, (msg) => {
+        const url = await processImagesToFormat(ffmpeg, framesToProcess, settingsWithDelay, (msg) => {
           setProgressMsg(msg);
         });
 
@@ -372,7 +373,7 @@ function App({ initialMode = 'images', lockMode = false }) {
       } else {
         // Image mode: use existing images
         const settingsWithOverlay = { ...settings, overlay: overlaySettings };
-        const url = await processImagesToGif(ffmpeg, images, settingsWithOverlay, (msg) => {
+        const url = await processImagesToFormat(ffmpeg, images, settingsWithOverlay, (msg) => {
           setProgressMsg(msg);
         });
         setGifUrl(url);
@@ -394,9 +395,10 @@ function App({ initialMode = 'images', lockMode = false }) {
 
   const handleDownload = () => {
     if (!gifUrl) return;
+    const extension = getFormatExtension(settings.outputFormat || 'gif');
     const a = document.createElement('a');
     a.href = gifUrl;
-    a.download = 'animated.gif';
+    a.download = `animated.${extension}`;
     a.click();
   };
 
@@ -440,7 +442,7 @@ function App({ initialMode = 'images', lockMode = false }) {
           {/* Image Mode */}
           {inputMode === 'images' && (
             <>
-              <DragDropZone onFilesSelected={handleFilesSelected} className="border-dashed border-2 border-gray-300 hover:border-blue-500/50 bg-gray-50/50 hover:bg-white" />
+              <DragDropZone onFilesSelected={handleFilesSelected} className="min-h-[300px] border-dashed border-2 border-gray-300 hover:border-blue-500/50 bg-gray-50/50 hover:bg-white" />
 
               <div className={images.length > 0 ? "block animate-in fade-in zoom-in duration-300" : "hidden"}>
                 {/* Undo/Redo Toolbar */}
@@ -492,7 +494,7 @@ function App({ initialMode = 'images', lockMode = false }) {
                 <VideoDropZone
                   onVideoSelected={handleVideoSelected}
                   disabled={!loaded || isGenerating}
-                  className="border-dashed border-2 border-gray-300 hover:border-blue-500/50 bg-gray-50/50 hover:bg-white"
+                  className="min-h-[300px] border-dashed border-2 border-gray-300 hover:border-blue-500/50 bg-gray-50/50 hover:bg-white"
                 />
               ) : (
                 <div className="space-y-4 animate-in fade-in zoom-in duration-300">
@@ -600,14 +602,14 @@ function App({ initialMode = 'images', lockMode = false }) {
               {isGenerating ? (
                 <>
                   <Loader2 className="w-6 h-6 animate-spin" />
-                  {isExtractingFrames ? t('video.extracting') : t('status.generating')}
+                  {isExtractingFrames ? t('video.extracting') : t('status.generating').replace('{format}', getFormatLabel(settings.outputFormat || 'gif'))}
                 </>
               ) : (
                 <>
                   <Wand2 className="w-6 h-6" />
                   {inputMode === 'images'
-                    ? (images.length === 0 ? t('dragDrop.title') : t('buttons.generate'))
-                    : (!videoFile ? t('video.dropTitle') : t('buttons.generate'))
+                    ? (images.length === 0 ? t('dragDrop.title') : t('buttons.generate').replace('{format}', getFormatLabel(settings.outputFormat || 'gif')))
+                    : (!videoFile ? t('video.dropTitle') : t('buttons.generate').replace('{format}', getFormatLabel(settings.outputFormat || 'gif')))
                   }
                 </>
               )}
@@ -644,8 +646,15 @@ function App({ initialMode = 'images', lockMode = false }) {
                 <p className="text-green-600 font-medium mt-2">
                   ✨ Successfully Generated!
                 </p>
+                {/* MP4 suggestion hint */}
+                <p className="text-sm text-gray-500 mt-3">
+                  {t('mp4Hint.text') || 'Need a smaller, smoother result?'}{' '}
+                  <Link to="/image-to-mp4" className="text-blue-600 hover:text-blue-800 underline">
+                    {t('mp4Hint.link') || 'Try Image to MP4'}
+                  </Link>
+                </p>
               </div>
-              <PreviewArea gifUrl={gifUrl} onDownload={handleDownload} />
+              <PreviewArea gifUrl={gifUrl} onDownload={handleDownload} format={settings.outputFormat || 'gif'} />
             </div>
           )}
         </section>

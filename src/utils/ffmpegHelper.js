@@ -639,3 +639,338 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
 
     return URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' }));
 };
+
+/**
+ * Process images to Animated WebP using FFmpeg.
+ * WebP provides better compression than GIF with higher quality.
+ * Single-pass encoding (no palette generation needed).
+ */
+export const processImagesToWebP = async (ffmpeg, images, settings, onProgress) => {
+    const { delay, width } = settings;
+    const height = settings.height || Math.round(width * (2 / 3));
+    const loop = settings.loop ?? 0; // Default: infinite loop
+    const fillColor = settings.fillColor ?? 'black';
+    const compression = settings.compression ?? 'none';
+
+    // WebP quality mapping (higher = better quality, larger file)
+    const qualityMap = {
+        none: 90,    // Best quality
+        light: 85,
+        medium: 75,
+        heavy: 60    // Most compression
+    };
+    const quality = qualityMap[compression] ?? 80;
+
+    // Calculate total steps for accurate progress
+    const totalSteps = images.length + 3; // images + list + encode + done
+    let currentStep = 0;
+
+    const startTime = performance.now();
+
+    const formatTime = (ms) => {
+        if (ms < 1000) return '<1s';
+        const seconds = Math.round(ms / 1000);
+        if (seconds < 60) return `${seconds}s`;
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}m${secs}s`;
+    };
+
+    const updateProgress = (message, step = null) => {
+        if (step !== null) currentStep = step;
+        const percent = Math.round((currentStep / totalSteps) * 100);
+
+        const elapsed = performance.now() - startTime;
+        let timeInfo = '';
+        if (currentStep > 0 && percent < 100) {
+            const avgTimePerStep = elapsed / currentStep;
+            const remainingSteps = totalSteps - currentStep;
+            const estimatedRemaining = avgTimePerStep * remainingSteps;
+            timeInfo = ` (${formatTime(estimatedRemaining)} remaining)`;
+        }
+
+        onProgress(`[${percent}%] ${message}${timeInfo}`);
+    };
+
+    updateProgress('Preparing images...', 0);
+
+    const fileListEntries = [];
+
+    // Process images with progress updates
+    for (let i = 0; i < images.length; i++) {
+        updateProgress(`Normalizing image ${i + 1}/${images.length}...`, i);
+
+        try {
+            const blob = await normalizeImage(images[i].file, width, height, fillColor);
+            const name = `frame_${i.toString().padStart(3, '0')}.png`;
+
+            await yieldToMain();
+
+            const fileData = await fetchFile(blob);
+            await yieldToMain();
+
+            await ffmpeg.writeFile(name, fileData);
+            fileListEntries.push(name);
+        } catch (e) {
+            console.error('Error normalizing image:', i, e);
+            throw new Error(`Failed to process image ${i + 1}: ${e.message}`);
+        }
+    }
+
+    updateProgress('Generating file list...', images.length);
+    await yieldToMain();
+
+    // Build file list for concat demuxer
+    let listContent = fileListEntries.map((name, idx) => {
+        const frameImage = images[idx];
+        const frameDelay = frameImage?.delay ?? delay;
+        const frameDuration = (frameDelay / 1000).toFixed(3);
+        return `file '${name}'\nduration ${frameDuration}`;
+    }).join('\n');
+
+    // Concat demuxer requires last file to be listed again
+    if (fileListEntries.length > 0) {
+        listContent += `\nfile '${fileListEntries[fileListEntries.length - 1]}'`;
+    }
+
+    await ffmpeg.writeFile('list.txt', listContent);
+
+    // ============================================
+    // SINGLE-PASS WEBP ENCODING
+    // ============================================
+
+    updateProgress('Encoding WebP (this may take a while)...', images.length + 1);
+    await yieldToMain();
+
+    // WebP encoding with quality settings
+    await ffmpeg.exec([
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', 'list.txt',
+        '-c:v', 'libwebp',
+        '-lossless', '0',
+        '-q:v', String(quality),
+        '-loop', String(loop),
+        '-y', 'output.webp'
+    ]);
+
+    updateProgress('Reading output...', images.length + 2);
+    await yieldToMain();
+
+    const data = await ffmpeg.readFile('output.webp');
+
+    // Cleanup temporary files
+    try {
+        for (const name of fileListEntries) {
+            await ffmpeg.deleteFile(name);
+        }
+        await ffmpeg.deleteFile('list.txt');
+        await ffmpeg.deleteFile('output.webp');
+    } catch (e) {
+        // Ignore cleanup errors
+    }
+
+    updateProgress('Done!', totalSteps);
+
+    return URL.createObjectURL(new Blob([data.buffer], { type: 'image/webp' }));
+};
+
+/**
+ * Process images to APNG (Animated PNG) using FFmpeg.
+ * APNG preserves full PNG quality without palette limitations.
+ * Best for UI screenshots, text, and graphics requiring lossless compression.
+ */
+export const processImagesToAPNG = async (ffmpeg, images, settings, onProgress) => {
+    const { delay, width } = settings;
+    const height = settings.height || Math.round(width * (2 / 3));
+    const loop = settings.loop ?? 0; // Default: infinite loop (0 = infinite in APNG)
+    const fillColor = settings.fillColor ?? 'black';
+    const compression = settings.compression ?? 'none';
+
+    // APNG compression level mapping (higher = smaller file, slower)
+    const compressionMap = {
+        none: 6,     // Default
+        light: 7,
+        medium: 8,
+        heavy: 9     // Maximum compression
+    };
+    const compressionLevel = compressionMap[compression] ?? 6;
+
+    // Calculate total steps
+    const totalSteps = images.length + 3; // images + list + encode + done
+    let currentStep = 0;
+
+    const startTime = performance.now();
+
+    const formatTime = (ms) => {
+        if (ms < 1000) return '<1s';
+        const seconds = Math.round(ms / 1000);
+        if (seconds < 60) return `${seconds}s`;
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}m${secs}s`;
+    };
+
+    const updateProgress = (message, step = null) => {
+        if (step !== null) currentStep = step;
+        const percent = Math.round((currentStep / totalSteps) * 100);
+
+        const elapsed = performance.now() - startTime;
+        let timeInfo = '';
+        if (currentStep > 0 && percent < 100) {
+            const avgTimePerStep = elapsed / currentStep;
+            const remainingSteps = totalSteps - currentStep;
+            const estimatedRemaining = avgTimePerStep * remainingSteps;
+            timeInfo = ` (${formatTime(estimatedRemaining)} remaining)`;
+        }
+
+        onProgress(`[${percent}%] ${message}${timeInfo}`);
+    };
+
+    updateProgress('Preparing images...', 0);
+
+    const fileListEntries = [];
+
+    // Process images with progress updates
+    for (let i = 0; i < images.length; i++) {
+        updateProgress(`Normalizing image ${i + 1}/${images.length}...`, i);
+
+        try {
+            const blob = await normalizeImage(images[i].file, width, height, fillColor);
+            const name = `frame_${i.toString().padStart(3, '0')}.png`;
+
+            await yieldToMain();
+
+            const fileData = await fetchFile(blob);
+            await yieldToMain();
+
+            await ffmpeg.writeFile(name, fileData);
+            fileListEntries.push(name);
+        } catch (e) {
+            console.error('Error normalizing image:', i, e);
+            throw new Error(`Failed to process image ${i + 1}: ${e.message}`);
+        }
+    }
+
+    updateProgress('Generating file list...', images.length);
+    await yieldToMain();
+
+    // Build file list for concat demuxer
+    let listContent = fileListEntries.map((name, idx) => {
+        const frameImage = images[idx];
+        const frameDelay = frameImage?.delay ?? delay;
+        const frameDuration = (frameDelay / 1000).toFixed(3);
+        return `file '${name}'\nduration ${frameDuration}`;
+    }).join('\n');
+
+    // Concat demuxer requires last file to be listed again
+    if (fileListEntries.length > 0) {
+        listContent += `\nfile '${fileListEntries[fileListEntries.length - 1]}'`;
+    }
+
+    await ffmpeg.writeFile('list.txt', listContent);
+
+    // ============================================
+    // SINGLE-PASS APNG ENCODING
+    // ============================================
+
+    updateProgress('Encoding APNG (this may take a while)...', images.length + 1);
+    await yieldToMain();
+
+    // APNG encoding
+    // Note: -plays controls loop count (0 = infinite)
+    await ffmpeg.exec([
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', 'list.txt',
+        '-c:v', 'apng',
+        '-plays', String(loop),
+        '-compression_level', String(compressionLevel),
+        '-f', 'apng',
+        '-y', 'output.apng'
+    ]);
+
+    updateProgress('Reading output...', images.length + 2);
+    await yieldToMain();
+
+    const data = await ffmpeg.readFile('output.apng');
+
+    // Cleanup temporary files
+    try {
+        for (const name of fileListEntries) {
+            await ffmpeg.deleteFile(name);
+        }
+        await ffmpeg.deleteFile('list.txt');
+        await ffmpeg.deleteFile('output.apng');
+    } catch (e) {
+        // Ignore cleanup errors
+    }
+
+    updateProgress('Done!', totalSteps);
+
+    return URL.createObjectURL(new Blob([data.buffer], { type: 'image/apng' }));
+};
+
+/**
+ * Process images to the specified output format
+ * @param {FFmpeg} ffmpeg - FFmpeg instance
+ * @param {ImageItem[]} images - Array of images
+ * @param {GifSettings & {outputFormat?: string}} settings - Settings including outputFormat
+ * @param {Function} onProgress - Progress callback
+ * @returns {Promise<string>} - Blob URL of the output
+ */
+export const processImagesToFormat = async (ffmpeg, images, settings, onProgress) => {
+    const format = settings.outputFormat || 'gif';
+
+    switch (format) {
+        case 'webp':
+            return processImagesToWebP(ffmpeg, images, settings, onProgress);
+        case 'apng':
+            return processImagesToAPNG(ffmpeg, images, settings, onProgress);
+        case 'gif':
+        default:
+            return processImagesToGif(ffmpeg, images, settings, onProgress);
+    }
+};
+
+/**
+ * Get the file extension for an output format
+ * @param {string} format - Output format ('gif', 'webp', 'apng')
+ * @returns {string} - File extension
+ */
+export const getFormatExtension = (format) => {
+    const extensions = {
+        gif: 'gif',
+        webp: 'webp',
+        apng: 'png'
+    };
+    return extensions[format] || 'gif';
+};
+
+/**
+ * Get the MIME type for an output format
+ * @param {string} format - Output format ('gif', 'webp', 'apng')
+ * @returns {string} - MIME type
+ */
+export const getFormatMimeType = (format) => {
+    const mimeTypes = {
+        gif: 'image/gif',
+        webp: 'image/webp',
+        apng: 'image/apng'
+    };
+    return mimeTypes[format] || 'image/gif';
+};
+
+/**
+ * Get the human-readable label for an output format
+ * @param {string} format - Output format ('gif', 'webp', 'apng')
+ * @returns {string} - Human-readable label
+ */
+export const getFormatLabel = (format) => {
+    const labels = {
+        gif: 'GIF',
+        webp: 'WebP',
+        apng: 'APNG'
+    };
+    return labels[format] || 'GIF';
+};

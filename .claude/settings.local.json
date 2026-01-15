@@ -5,7 +5,8 @@
       "Bash(npm run build:*)",
       "Bash(gh pr list:*)",
       "Bash(curl:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(cd /Users/kite/Universal\\\\ GIF\\\\ Maker && npm install heic-convert:*)"
     ]
   }
 }

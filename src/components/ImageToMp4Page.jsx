@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Loader2, PlayCircle, RefreshCcw } from 'lucide-react';
+import { Download, Loader2, PlayCircle } from 'lucide-react';
 import { fetchFile } from '@ffmpeg/util';
 import Layout from './Layout';
 import DragDropZone from './DragDropZone';
@@ -366,21 +366,15 @@ const ImageToMp4Page = () => {
                     </p>
                 </section>
 
-                <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
-                    <h2 className="text-xl font-bold text-gray-900">{c.uploadTitle}</h2>
-                    <p className="text-sm text-gray-600">
-                        JPG / PNG / WebP. {isZh ? '建议总量 <100MB。' : 'Stay under ~100MB for best stability.'}
-                    </p>
-                    <DragDropZone onFilesSelected={handleFilesSelected} />
+                <section className="space-y-6">
+                    <DragDropZone
+                        onFilesSelected={handleFilesSelected}
+                        className="min-h-[300px] border-dashed border-2 border-gray-300 hover:border-blue-500/50 bg-gray-50/50 hover:bg-white"
+                    />
                 </section>
 
                 {images.length > 0 && (
-                    <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-gray-900">{c.framesTitle}</h2>
-                            <span className="text-sm text-gray-500">{images.length} file(s)</span>
-                        </div>
-                        <p className="text-sm text-gray-500">{c.framesNote}</p>
+                    <div className="animate-in fade-in zoom-in duration-300">
                         <ImageList
                             images={images}
                             onRemove={handleRemove}
@@ -391,106 +385,138 @@ const ImageToMp4Page = () => {
                             allowEdit={false}
                             allowDelay={false}
                         />
-                    </section>
+                    </div>
                 )}
 
-                <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-3">
-                    <h2 className="text-xl font-bold text-gray-900">{c.presetsTitle}</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {presets.map((preset) => (
-                            <button
-                                key={preset.id}
-                                onClick={() => applyPreset(preset.id)}
-                                className={`p-3 rounded-lg border text-left transition-all ${settings.preset === preset.id
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 bg-gray-50 hover:border-blue-300'}`}
-                            >
-                                <div className="font-semibold text-gray-900">
-                                    {isZh
-                                        ? (preset.id === 'social' ? '社交' :
-                                            preset.id === 'tutorial' ? '教程' :
-                                                preset.id === 'small' ? '小文件' : '超清')
-                                        : preset.label}
+                {/* Settings Panel - Unified Style */}
+                <section className="space-y-6">
+                    <div className="text-left border-l-4 border-blue-600 pl-4">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                            {c.settingsTitle}
+                        </h2>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+                            <PlayCircle className="w-4 h-4 text-gray-400" />
+                            <h3 className="font-semibold text-gray-700">{c.presetsTitle}</h3>
+                        </div>
+
+                        <div className="p-6 space-y-8">
+                            {/* Quick Presets */}
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    {presets.map((preset) => (
+                                        <button
+                                            key={preset.id}
+                                            onClick={() => applyPreset(preset.id)}
+                                            className={`p-3 rounded-xl border transition-all text-left group ${settings.preset === preset.id
+                                                ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                                                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                                                }`}
+                                        >
+                                            <div className={`text-sm font-semibold mb-1 ${settings.preset === preset.id ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                {isZh
+                                                    ? (preset.id === 'social' ? '社交' :
+                                                        preset.id === 'tutorial' ? '教程' :
+                                                            preset.id === 'small' ? '小文件' : '超清')
+                                                    : preset.label}
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                {c.presetLabels[preset.id]}
+                                            </p>
+                                            {settings.preset === preset.id && (
+                                                <span className="text-[11px] text-blue-600 font-semibold mt-1 inline-block">Applied ✓</span>
+                                            )}
+                                        </button>
+                                    ))}
                                 </div>
-                                <p className="text-xs text-gray-500">
-                                    {c.presetLabels[preset.id]}
-                                </p>
-                            </button>
-                        ))}
-                    </div>
-                </section>
-
-                <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">{c.settingsTitle}</h2>
-                        <span className="text-xs text-gray-500">{isZh ? '支持自动适配或指定常用分辨率' : 'Auto detect or pick common outputs'}</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">{c.resolution}</label>
-                            <div className="flex gap-2 flex-wrap">
-                                {resolutionOptions.map((option) => (
-                                    <button
-                                        key={option.value}
-                                        onClick={() => setSettings((s) => ({ ...s, resolution: option.value }))}
-                                        className={`px-3 py-2 rounded-lg border text-sm ${settings.resolution === option.value
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-gray-200 bg-white hover:border-blue-300'
-                                            }`}
-                                    >
-                                        {option.label}
-                                    </button>
-                                ))}
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">{c.fill}</label>
-                            <div className="flex gap-2">
-                                {['black', 'white'].map((color) => (
-                                    <button
-                                        key={color}
-                                        onClick={() => setSettings((s) => ({ ...s, fillColor: color }))}
-                                        className={`flex-1 px-3 py-2 rounded-lg border text-sm ${settings.fillColor === color
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-gray-200 bg-white hover:border-blue-300'
-                                            }`}
-                                    >
-                                        {color === 'black' ? (isZh ? '黑色填充' : 'Black padding') : (isZh ? '白色填充' : 'White padding')}
-                                    </button>
-                                ))}
+                            <div className="h-px bg-gray-100" />
+
+                            {/* Resolution */}
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-gray-700">{c.resolution}</label>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {resolutionOptions.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => setSettings((s) => ({ ...s, resolution: option.value }))}
+                                            className={`p-3 rounded-xl border transition-all text-center group ${settings.resolution === option.value
+                                                ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                                                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                                                }`}
+                                        >
+                                            <span className={`text-sm font-semibold ${settings.resolution === option.value ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                {option.label}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">FPS</label>
-                            <select
-                                value={settings.fps}
-                                onChange={(e) => setSettings((s) => ({ ...s, fps: e.target.value === 'auto' ? 'auto' : Number(e.target.value) }))}
-                                className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-blue-500"
-                            >
-                                {fpsOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                            <div className="h-px bg-gray-100" />
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">{c.duration}</label>
-                            <select
-                                value={settings.duration}
-                                onChange={(e) => setSettings((s) => ({ ...s, duration: Number(e.target.value) }))}
-                                className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-blue-500"
-                            >
-                                {durationOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
+                            {/* Other Settings Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                {/* Fill Color */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 block">{c.fill}</label>
+                                    <div className="flex gap-2">
+                                        {['black', 'white'].map((color) => (
+                                            <button
+                                                key={color}
+                                                onClick={() => setSettings((s) => ({ ...s, fillColor: color }))}
+                                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border transition-all ${settings.fillColor === color
+                                                    ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                                                    : 'border-gray-200 bg-white hover:border-gray-300'
+                                                    }`}
+                                            >
+                                                <div className={`w-4 h-4 rounded ${color === 'black' ? 'bg-black' : 'bg-white'} border border-gray-300`} />
+                                                <span className="text-sm text-gray-700">
+                                                    {color === 'black' ? (isZh ? '黑色' : 'Black') : (isZh ? '白色' : 'White')}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* FPS */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 block">FPS</label>
+                                    <select
+                                        value={settings.fps}
+                                        onChange={(e) => setSettings((s) => ({ ...s, fps: e.target.value === 'auto' ? 'auto' : Number(e.target.value) }))}
+                                        className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none"
+                                        style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
+                                    >
+                                        {fpsOptions.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Duration */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 block">{c.duration}</label>
+                                    <select
+                                        value={settings.duration}
+                                        onChange={(e) => setSettings((s) => ({ ...s, duration: Number(e.target.value) }))}
+                                        className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none"
+                                        style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
+                                    >
+                                        {durationOptions.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="text-xs text-gray-400">{isZh ? '每张图片的显示时长' : 'Display duration per image'}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -502,54 +528,48 @@ const ImageToMp4Page = () => {
                     disabled={phase === 'encoding'}
                 />
 
-                <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
-                    <h2 className="text-xl font-bold text-gray-900">{isZh ? '生成 MP4' : 'Generate MP4'}</h2>
-                    <div className="flex items-center gap-3">
+                {/* Generate Button - Sticky Style */}
+                <section className="space-y-6">
+                    <div className="pt-4 sticky bottom-6 z-40 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-white/50 ring-1 ring-gray-900/5">
                         <button
                             onClick={convertImagesToMp4}
                             disabled={phase === 'encoding' || isLoading || images.length === 0}
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-4 rounded-xl bg-gray-900 text-white font-bold text-lg hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+                            className="w-full py-5 bg-gray-900 hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed rounded-xl text-xl font-bold text-white shadow-xl transition-all flex items-center justify-center gap-3 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0"
                         >
                             {phase === 'encoding' ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-6 h-6 animate-spin" />
                                     {isZh ? '转换中…' : 'Converting…'}
                                 </>
                             ) : (
                                 <>
-                                    <PlayCircle className="w-5 h-5" />
-                                    {c.convert}
+                                    <PlayCircle className="w-6 h-6" />
+                                    {images.length === 0 ? (isZh ? '请先添加图片' : 'Add images first') : c.convert}
                                 </>
                             )}
                         </button>
-                        <button
-                            onClick={handleClear}
-                            className="px-4 py-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium"
-                        >
-                            <RefreshCcw className="w-4 h-4 inline mr-1" />
-                            {c.reset}
-                        </button>
-                    </div>
 
-                    {(phase !== 'idle' || isLoading) && (
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>{progressText}</span>
-                                <span className="font-mono text-blue-600">{progressValue}%</span>
+                        {/* Progress Indicator */}
+                        {(phase !== 'idle' || isLoading) && (
+                            <div className="mt-4 space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="font-medium text-gray-700">{progressText}</span>
+                                    <span className="font-mono text-blue-600 font-bold">{progressValue}%</span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                    <div
+                                        className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out"
+                                        style={{ width: `${progressValue}%` }}
+                                    />
+                                </div>
+                                {phase === 'error' && (
+                                    <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
+                                        {error || c.errorHint}
+                                    </p>
+                                )}
                             </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                <div
-                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${progressValue}%` }}
-                                />
-                            </div>
-                            {phase === 'error' && (
-                                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                                    {error || c.errorHint}
-                                </p>
-                            )}
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </section>
 
                 {output && (

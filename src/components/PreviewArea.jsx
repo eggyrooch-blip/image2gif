@@ -3,8 +3,15 @@ import { Download, Film, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import ShareButtons from './ShareButtons';
 
-const PreviewArea = ({ gifUrl, onDownload }) => {
+const PreviewArea = ({ gifUrl, onDownload, format = 'gif' }) => {
     const { t } = useLanguage();
+
+    // Get format label for display
+    const formatLabel = {
+        gif: 'GIF',
+        webp: 'WebP',
+        apng: 'APNG'
+    }[format] || 'GIF';
 
     if (!gifUrl) {
         return (
@@ -24,7 +31,7 @@ const PreviewArea = ({ gifUrl, onDownload }) => {
                     style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
                     <img
                         src={gifUrl}
-                        alt="Generated GIF"
+                        alt={`Generated ${formatLabel}`}
                         className="max-w-full h-auto object-contain max-h-[600px] relative z-10 shadow-sm"
                     />
                 </div>
@@ -36,7 +43,7 @@ const PreviewArea = ({ gifUrl, onDownload }) => {
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
                 >
                     <Download className="w-4 h-4" />
-                    {t('buttons.download')}
+                    {t('buttons.download').replace('{format}', formatLabel)}
                 </button>
             </div>
 
@@ -47,4 +54,3 @@ const PreviewArea = ({ gifUrl, onDownload }) => {
 };
 
 export default PreviewArea;
-
