@@ -64,7 +64,7 @@ const ImageToMp4Page = () => {
             sub: 'Turn images into MP4 locally. Secure, no uploads.',
             presetsTitle: 'Quick presets',
             settingsTitle: 'Configure',
-            uploadTitle: '1) Add images',
+            uploadTitle: 'Add images',
             presetLabels: {
                 social: 'Social · 720p · 24fps · 0.5s',
                 tutorial: 'Tutorial · 1080p · 15fps · 1s',
@@ -101,7 +101,7 @@ const ImageToMp4Page = () => {
             sub: '纯前端多图合成 MP4，保护隐私，无水印。',
             presetsTitle: '快速预设',
             settingsTitle: '参数设置',
-            uploadTitle: '1) 添加图片',
+            uploadTitle: '添加图片',
             presetLabels: {
                 social: '社交 · 720p · 24fps · 0.5s',
                 tutorial: '教程 · 1080p · 15fps · 1s',
