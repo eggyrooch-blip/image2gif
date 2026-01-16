@@ -8,6 +8,9 @@ import NotFound from './components/NotFound.jsx'
 import { LanguageProvider } from './contexts/LanguageContext'
 import ImageToMp4Page from './components/ImageToMp4Page.jsx'
 import CompressMp4Page from './components/CompressMp4Page.jsx'
+import CropGifPage from './components/CropGifPage.jsx'
+import GifCanvasPage from './components/GifCanvasPage.jsx'
+import AddTextToGifPage from './components/AddTextToGifPage.jsx'
 
 // Landing page wrapper component to pass pageKey
 const LandingPageWrapper = ({ pageKey }) => {
@@ -31,6 +34,9 @@ createRoot(document.getElementById('root')).render(
           <Route path="/screen-recording-to-gif" element={<LandingPageWrapper pageKey="screen-recording-to-gif" />} />
           <Route path="/image-to-mp4" element={<ImageToMp4Page />} />
           <Route path="/compress-mp4" element={<CompressMp4Page />} />
+          <Route path="/crop-gif" element={<CropGifPage />} />
+          <Route path="/gif-canvas" element={<GifCanvasPage />} />
+          <Route path="/add-text-to-gif" element={<AddTextToGifPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

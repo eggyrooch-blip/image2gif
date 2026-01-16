@@ -11,4 +11,7 @@ export const routes = [
   { path: '/screen-recording-to-gif', category: 'video-to-gif', key: 'screen-recording-to-gif' },
   { path: '/image-to-mp4', category: 'video-tools', key: 'image-to-mp4' },
   { path: '/compress-mp4', category: 'video-tools', key: 'compress-mp4' },
+  { path: '/crop-gif', category: 'gif-editing', key: 'crop-gif' },
+  { path: '/gif-canvas', category: 'gif-editing', key: 'gif-canvas' },
+  { path: '/add-text-to-gif', category: 'gif-editing', key: 'add-text-to-gif' },
 ];

@@ -14,10 +14,10 @@ const related = (currentPath) => {
 
 export const seoData = {
   '/': {
-    title: 'Image & Video to GIF/WebP/APNG Maker | Free, No Watermark | Plotlake',
+    title: 'GIF 制作器 - 图片/视频转 GIF/WebP/APNG，免费无水印 | Plotlake',
     description:
-      'Create GIFs, Animated WebP, or APNG from images or videos with Plotlake. Free, no watermark, privacy-first browser processing. Supports HEIC/HEIF from iPhone, folder drag-drop batch import, platform presets for Twitter, Discord, Slack, Telegram, Email.',
-    h1: 'Free Image & Video to GIF/WebP/APNG Maker (No Watermark, Browser-Only)',
+      '免费在线 GIF 制作器，支持图片、视频转 GIF/WebP/APNG。无水印、无需注册、本地浏览器处理保护隐私。一键优化 Twitter、Discord、Slack 等平台，HEIC/HEIF 自动转换。',
+    h1: 'GIF 制作器（图片/视频转 GIF/WebP/APNG，免费无水印）',
     intro: [
       'Plotlake is a privacy-first animation maker that runs entirely in your browser. Drop JPG, PNG, WebP, HEIC/HEIF from iPhone, or MP4/WebM/MOV files, trim what you need, and generate crisp GIF, Animated WebP, or APNG without uploading to a server. No watermark, no signup, no hidden limits - just fast local processing powered by WebAssembly FFmpeg.',
       'Three simple workflows: Convert format to quickly export GIF, WebP, or APNG. Optimize for platform to auto-tune settings for Twitter, Discord, Slack, Telegram, or Email with recommended output formats. Fine-tune for full control over quality, compression, dithering, and advanced GIF options.',
@@ -391,6 +391,101 @@ export const seoData = {
       { q: 'How to get smaller files?', a: 'Pick Heavy, drop to 720p/480p, and avoid very high-bitrate sources when possible.' },
     ],
     relatedLinks: related('/compress-mp4'),
+    ogImage: defaultOg,
+  },
+  '/crop-gif': {
+    title: 'Crop GIF Online | Free, No Watermark | Plotlake',
+    description:
+      'Crop animated GIFs, WebP, APNG, or videos locally in your browser. Free, no watermark, no upload. Select any region with aspect ratio presets.',
+    h1: 'Crop GIF Online (Free, No Watermark)',
+    categoryLabel: 'GIF Editing',
+    intro: [
+      'Crop animated GIFs, WebP, APNG, or video files directly in your browser without uploading to any server. Plotlake uses FFmpeg WebAssembly to process files locally, ensuring your content stays private.',
+      'Select any crop region with drag handles, use preset aspect ratios (1:1, 4:3, 16:9, 9:16), and export to GIF, WebP, or MP4. Perfect for removing unwanted borders, focusing on specific content, or preparing animations for social media.',
+      'All processing happens locally with no file uploads. The first run downloads a cached ~30MB FFmpeg core; subsequent crops are fast. No watermarks, no signup required.',
+    ],
+    features: [
+      'Crop GIF, WebP, APNG, and MP4/WebM files locally.',
+      'Interactive crop region with drag handles.',
+      'Aspect ratio presets: Free, 1:1, 4:3, 16:9, 9:16.',
+      'Output to GIF, WebP, or MP4 format.',
+      'Two-pass GIF encoding for high quality.',
+      'No watermark, no signup, 100% browser-side.',
+      'Privacy-first: files never leave your device.',
+    ],
+    faq: [
+      { q: 'What file formats can I crop?', a: 'GIF, WebP, APNG, MP4, and WebM files are supported.' },
+      { q: 'Will cropping increase file size?', a: 'Usually cropping reduces file size since there are fewer pixels. Re-encoding may cause slight variations.' },
+      { q: 'Do you add a watermark?', a: 'No. Exports are completely watermark-free.' },
+      { q: 'Are files uploaded to a server?', a: 'No. All processing happens locally in your browser using FFmpeg WebAssembly.' },
+      { q: 'Why is processing slow?', a: 'First use downloads the ~30MB FFmpeg engine. Larger files and higher resolutions take more time.' },
+      { q: 'Can I keep the original aspect ratio?', a: 'Yes, select "Free" ratio mode to crop to any custom region.' },
+    ],
+    relatedLinks: related('/crop-gif'),
+    ogImage: defaultOg,
+  },
+  '/gif-canvas': {
+    title: 'GIF Canvas / Pad | Resize Without Cropping | Plotlake',
+    description:
+      'Add padding to GIFs without cropping content. Resize canvas, choose alignment and background color. Free, no watermark, browser-only processing.',
+    h1: 'GIF Canvas / Pad (Add Padding Without Cropping)',
+    categoryLabel: 'GIF Editing',
+    intro: [
+      'Resize your GIF canvas without cropping any content. Add padding around your animation to fit specific dimensions like 512×512 for emojis, or standard video sizes like 1920×1080.',
+      'Choose from preset canvas sizes or enter custom dimensions. Align your content anywhere on the canvas with 9-position alignment (corners, edges, center). Select transparent or solid color backgrounds.',
+      'Unlike cropping, canvas expansion preserves all original content while adding space around it. Perfect for formatting GIFs for specific platforms, creating borders, or centering content.',
+    ],
+    features: [
+      'Expand canvas without cropping original content.',
+      'Preset sizes: 512×512, 640×640, 800×800, 1280×720, 1920×1080.',
+      '9-position alignment grid for precise placement.',
+      'Transparent or solid color backgrounds.',
+      'Output to GIF, WebP, or MP4 format.',
+      'No watermark, no signup, 100% browser-side.',
+      'Privacy-first: files never leave your device.',
+    ],
+    faq: [
+      { q: "What's the difference between Canvas and Crop?", a: 'Crop removes content outside the selection. Canvas only expands the canvas size and adds padding, keeping all original content intact.' },
+      { q: 'Why would I use Canvas?', a: 'Common uses include formatting GIFs for specific platform requirements (like 512×512 for Discord emojis), adding decorative borders, or centering content.' },
+      { q: 'Which formats support transparency?', a: 'GIF and WebP support transparent backgrounds. MP4 does not support transparency and will use a solid color.' },
+      { q: 'Do you add a watermark?', a: 'No. Exports are completely watermark-free.' },
+      { q: 'Are files uploaded to a server?', a: 'No. All processing happens locally in your browser.' },
+      { q: 'Will file size increase?', a: 'Yes, larger canvas dimensions typically increase file size, though the amount depends on the background type and padding area.' },
+    ],
+    relatedLinks: related('/gif-canvas'),
+    ogImage: defaultOg,
+  },
+  '/add-text-to-gif': {
+    title: 'Add Text to GIF | Free Caption & Meme Maker | Plotlake',
+    description:
+      'Add text, captions, or meme text to GIFs locally. Customize font size, color, stroke, and position. Free, no watermark, browser-only processing.',
+    h1: 'Add Text to GIF (Captions, Memes, Watermarks)',
+    categoryLabel: 'GIF Editing',
+    intro: [
+      'Add text overlays to your GIFs directly in the browser without uploading to any server. Create memes, add captions, or apply watermarks with full control over styling and positioning.',
+      'Use quick templates for common styles: Meme (large text at top), Subtitle (bottom text with background), or Corner Tag (small watermark). Or customize everything: font size, color, stroke/outline, and background strip.',
+      'Position text anywhere with the 9-position grid. All processing happens locally using FFmpeg WebAssembly, keeping your content private. Export to GIF, WebP, or MP4.',
+    ],
+    features: [
+      'Add text overlays to GIF, WebP, APNG, or MP4.',
+      'Quick templates: Meme, Subtitle, Corner Tag.',
+      '9-position alignment for text placement.',
+      'Customizable font size, color, and stroke/outline.',
+      'Optional semi-transparent background strip.',
+      'Multi-line text support.',
+      'Output to GIF, WebP, or MP4 format.',
+      'No watermark, no signup, 100% browser-side.',
+    ],
+    faq: [
+      { q: 'Can I add multiple lines of text?', a: 'Yes, press Enter in the text box to create multiple lines. All lines will be positioned together.' },
+      { q: 'Why does text look blurry?', a: 'Try increasing font size or stroke width. WebP output typically produces sharper results than GIF.' },
+      { q: 'Are non-English characters supported?', a: 'Basic international characters work. Due to FFmpeg WASM font limitations, some special characters may not display correctly.' },
+      { q: 'Can I add multiple text layers?', a: 'Currently the tool supports one text layer. For multiple layers, process the file multiple times.' },
+      { q: 'Do you add a watermark?', a: 'No. Exports are completely watermark-free.' },
+      { q: 'Are files uploaded to a server?', a: 'No. All processing happens locally in your browser.' },
+      { q: 'Why is processing slow for large files?', a: 'Large GIFs or long videos require more processing time. Consider using shorter clips or smaller dimensions.' },
+    ],
+    relatedLinks: related('/add-text-to-gif'),
     ogImage: defaultOg,
   },
 };

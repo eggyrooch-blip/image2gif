@@ -45,14 +45,26 @@ const Layout = ({ children }) => {
                         {t('feedback.text')}
                     </a>
                     <span className="text-gray-300">|</span>
-                    <a
-                        href="https://buymeacoffee.com/eggyrooch"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-full transition-colors font-medium"
-                    >
-                        {t('donate.text')}
-                    </a>
+                    <div className="relative group">
+                        <a
+                            href="/donate-qr.jpg"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-full transition-colors font-medium"
+                        >
+                            {t('donate.text')}
+                        </a>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-4">
+                                <img
+                                    src="/donate-qr.jpg"
+                                    alt={language === 'zh' ? '赞赏码' : 'Donation QR Code'}
+                                    className="w-[300px] h-auto max-w-[90vw] rounded-xl"
+                                />
+                            </div>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-white"></div>
+                        </div>
+                    </div>
                 </div>
             </footer>
         </div>

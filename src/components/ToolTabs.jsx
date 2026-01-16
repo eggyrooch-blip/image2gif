@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { Image as ImageIcon, Video, Scissors, Film } from 'lucide-react';
+import { Image as ImageIcon, Video, Crop, Square, Type } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 /**
@@ -25,14 +25,19 @@ const ToolTabs = () => {
             label: isZh ? '视频转 GIF' : 'Video to GIF',
         },
         {
-            path: '/image-to-mp4',
-            icon: Film,
-            label: isZh ? '图片转 MP4' : 'Image to MP4',
+            path: '/crop-gif',
+            icon: Crop,
+            label: isZh ? '裁剪 GIF' : 'Crop GIF',
         },
         {
-            path: '/compress-mp4',
-            icon: Scissors,
-            label: isZh ? '压缩 MP4' : 'Compress MP4',
+            path: '/gif-canvas',
+            icon: Square,
+            label: isZh ? '画布' : 'Canvas',
+        },
+        {
+            path: '/add-text-to-gif',
+            icon: Type,
+            label: isZh ? '添加文字' : 'Add Text',
         },
     ];
 

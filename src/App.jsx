@@ -668,8 +668,26 @@ function App({ initialMode = 'images', lockMode = false }) {
         {/* Related tools */}
         <section className="space-y-3 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
           <h2 className="text-2xl font-bold text-gray-900">Related tools</h2>
-          <p className="text-sm text-gray-600">Explore new MP4 utilities in the same browser-native workflow.</p>
+          <p className="text-sm text-gray-600">Edit your GIF or try other browser-native tools.</p>
           <div className="flex flex-wrap gap-3">
+            <Link
+              to="/crop-gif"
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+            >
+              Crop GIF
+            </Link>
+            <Link
+              to="/gif-canvas"
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+            >
+              Add Padding
+            </Link>
+            <Link
+              to="/add-text-to-gif"
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+            >
+              Add Text
+            </Link>
             <Link
               to="/image-to-mp4"
               className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"

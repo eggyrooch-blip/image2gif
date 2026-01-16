@@ -268,7 +268,7 @@ export const translations = {
         },
     },
     zh: {
-        title: "图片转 GIF 制作器",
+        title: "GIF 制作器",
         footer: "© {year} Plotlake. 本地处理，隐私优先。",
         status: {
             loading: "正如火如荼加载中...",
