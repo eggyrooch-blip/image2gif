@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { routes } from './seo/routes'
 import './index.css'
 import App from './App.jsx'
 import LandingPage from './components/LandingPage.jsx'
@@ -22,21 +23,19 @@ createRoot(document.getElementById('root')).render(
     <LanguageProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<App lockMode initialMode="images" />} />
-          <Route path="/jpg-to-gif" element={<LandingPageWrapper pageKey="jpg-to-gif" />} />
-          <Route path="/png-to-gif" element={<LandingPageWrapper pageKey="png-to-gif" />} />
-          <Route path="/jpeg-to-gif" element={<LandingPageWrapper pageKey="jpeg-to-gif" />} />
-          <Route path="/photo-to-gif" element={<LandingPageWrapper pageKey="photo-to-gif" />} />
-          <Route path="/compress-gif" element={<LandingPageWrapper pageKey="compress-gif" />} />
-          <Route path="/no-watermark-gif-maker" element={<LandingPageWrapper pageKey="no-watermark-gif-maker" />} />
-          <Route path="/video-to-gif" element={<App initialMode="video" lockMode />} />
-          <Route path="/mp4-to-gif" element={<LandingPageWrapper pageKey="mp4-to-gif" />} />
-          <Route path="/screen-recording-to-gif" element={<LandingPageWrapper pageKey="screen-recording-to-gif" />} />
-          <Route path="/image-to-mp4" element={<ImageToMp4Page />} />
-          <Route path="/compress-mp4" element={<CompressMp4Page />} />
-          <Route path="/crop-gif" element={<CropGifPage />} />
-          <Route path="/gif-canvas" element={<GifCanvasPage />} />
-          <Route path="/add-text-to-gif" element={<AddTextToGifPage />} />
+          {routes.map((route) => {
+            // Special cases for non-LandingPage components
+            if (route.path === '/') return <Route key={route.path} path="/" element={<App lockMode initialMode="images" />} />;
+            if (route.path === '/video-to-gif') return <Route key={route.path} path={route.path} element={<App initialMode="video" lockMode />} />;
+            if (route.key === 'image-to-mp4') return <Route key={route.path} path={route.path} element={<ImageToMp4Page />} />;
+            if (route.key === 'compress-mp4') return <Route key={route.path} path={route.path} element={<CompressMp4Page />} />;
+            if (route.key === 'crop-gif') return <Route key={route.path} path={route.path} element={<CropGifPage />} />;
+            if (route.key === 'gif-canvas') return <Route key={route.path} path={route.path} element={<GifCanvasPage />} />;
+            if (route.key === 'add-text-to-gif') return <Route key={route.path} path={route.path} element={<AddTextToGifPage />} />;
+
+            // Default: LandingPageWrapper with SEO data
+            return <Route key={route.path} path={route.path} element={<LandingPageWrapper pageKey={route.key} />} />;
+          })}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

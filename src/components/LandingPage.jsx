@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle } from 'lucide-react';
 import Layout from './Layout';
 import FAQ from './FAQ';
 import TrustSection from './TrustSection';
+import { seoData } from '../seo/seoData';
 
 // Landing page data for each keyword-targeted page
 const landingPageData = {
@@ -207,8 +208,35 @@ const landingPageData = {
     }
 };
 
+// Helper to adapt seoData to landingPage format
+const getPageData = (key, lang) => {
+    // 1. Try manual override from landingPageData
+    const manualData = landingPageData[key];
+    if (manualData) {
+        return {
+            title: lang === 'zh' ? manualData.title_cn : manualData.title,
+            subtitle: lang === 'zh' ? manualData.subtitle_cn : manualData.subtitle,
+            bullets: lang === 'zh' ? manualData.bullets_cn : manualData.bullets,
+            faqs: manualData.faqs
+        };
+    }
+
+    // 2. Fallback to seoData
+    const seoItem = seoData['/' + key];
+    if (seoItem) {
+        return {
+            title: seoItem.h1 || seoItem.title, // Use H1 for visual title
+            subtitle: seoItem.description,
+            bullets: (seoItem.features || []).slice(0, 4), // Take first 4 features
+            faqs: (seoItem.faq || []).map(f => ({ q: f.q, a: f.a }))
+        };
+    }
+
+    return null;
+};
+
 export default function LandingPage({ pageKey, language = 'en' }) {
-    const data = landingPageData[pageKey];
+    const data = getPageData(pageKey, language);
 
     if (!data) {
         return (
@@ -223,9 +251,7 @@ export default function LandingPage({ pageKey, language = 'en' }) {
         );
     }
 
-    const title = language === 'zh' ? data.title_cn : data.title;
-    const subtitle = language === 'zh' ? data.subtitle_cn : data.subtitle;
-    const bullets = language === 'zh' ? data.bullets_cn : data.bullets;
+    const { title, subtitle, bullets, faqs } = data;
 
     return (
         <Layout>
@@ -301,6 +327,27 @@ export default function LandingPage({ pageKey, language = 'en' }) {
                     <TrustSection />
                 </div>
 
+                {/* SEO Content (Intro) */}
+                {seoData['/' + pageKey] && seoData['/' + pageKey].intro && (
+                    <section className="max-w-3xl mx-auto">
+                        <div className="prose prose-lg prose-blue mx-auto text-gray-600">
+                            {seoData['/' + pageKey].intro.map((paragraph, index) => (
+                                <p key={index} className="mb-4 text-lg leading-relaxed">{paragraph}</p>
+                            ))}
+                        </div>
+                        {seoData['/' + pageKey].features && (
+                            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {seoData['/' + pageKey].features.map((feature, idx) => (
+                                    <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                                        <div className="mt-0.5 text-blue-500">★</div>
+                                        <span>{feature}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
+
                 {/* Page-specific FAQ */}
                 <section className="space-y-8">
                     <div className="text-center">
@@ -313,7 +360,7 @@ export default function LandingPage({ pageKey, language = 'en' }) {
                     </div>
 
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
-                        {data.faqs.map((faq, index) => (
+                        {(faqs || []).map((faq, index) => (
                             <div key={index} className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-900/5 hover:shadow-md transition-shadow">
                                 <dt className="font-semibold text-gray-900 text-lg leading-7 mb-3">{faq.q}</dt>
                                 <dd className="leading-7 text-gray-600">{faq.a}</dd>
