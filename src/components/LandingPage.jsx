@@ -5,6 +5,7 @@ import Layout from './Layout';
 import FAQ from './FAQ';
 import TrustSection from './TrustSection';
 import { seoData } from '../seo/seoData';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Landing page data for each keyword-targeted page
 const landingPageData = {
@@ -235,16 +236,19 @@ const getPageData = (key, lang) => {
     return null;
 };
 
-export default function LandingPage({ pageKey, language = 'en' }) {
+export default function LandingPage({ pageKey }) {
+    const { language } = useLanguage();
     const data = getPageData(pageKey, language);
 
     if (!data) {
         return (
             <Layout>
                 <div className="text-center py-20">
-                    <h1 className="text-2xl font-bold text-gray-900">Page not found</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {language === 'zh' ? '页面未找到' : 'Page not found'}
+                    </h1>
                     <Link to="/" className="text-blue-600 hover:underline mt-4 inline-block">
-                        ← Back to Image to GIF Maker
+                        ← {language === 'zh' ? '返回图片转 GIF 制作器' : 'Back to Image to GIF Maker'}
                     </Link>
                 </div>
             </Layout>
@@ -331,18 +335,26 @@ export default function LandingPage({ pageKey, language = 'en' }) {
                 {seoData['/' + pageKey] && seoData['/' + pageKey].intro && (
                     <section className="max-w-3xl mx-auto">
                         <div className="prose prose-lg prose-blue mx-auto text-gray-600">
-                            {seoData['/' + pageKey].intro.map((paragraph, index) => (
-                                <p key={index} className="mb-4 text-lg leading-relaxed">{paragraph}</p>
-                            ))}
+                            {(() => {
+                                const intro = seoData['/' + pageKey].intro;
+                                const introArray = intro[language] || intro.en || (Array.isArray(intro) ? intro : []);
+                                return introArray.map((paragraph, index) => (
+                                    <p key={index} className="mb-4 text-lg leading-relaxed">{paragraph}</p>
+                                ));
+                            })()}
                         </div>
                         {seoData['/' + pageKey].features && (
                             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {seoData['/' + pageKey].features.map((feature, idx) => (
-                                    <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-                                        <div className="mt-0.5 text-blue-500">★</div>
-                                        <span>{feature}</span>
-                                    </div>
-                                ))}
+                                {(() => {
+                                    const features = seoData['/' + pageKey].features;
+                                    const featuresArray = features[language] || features.en || (Array.isArray(features) ? features : []);
+                                    return featuresArray.map((feature, idx) => (
+                                        <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                                            <div className="mt-0.5 text-blue-500">★</div>
+                                            <span>{feature}</span>
+                                        </div>
+                                    ));
+                                })()}
                             </div>
                         )}
                     </section>

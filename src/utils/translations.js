@@ -146,6 +146,8 @@ export const translations = {
             download: "Download {format}",
             remove: "Remove",
             clear: "Clear All",
+            undo: "Undo",
+            redo: "Redo",
         },
         preview: {
             placeholder: "Generated animation will appear here",
@@ -451,6 +453,8 @@ export const translations = {
             download: "下载 {format}",
             remove: "移除",
             clear: "清空全部",
+            undo: "撤销",
+            redo: "重做",
         },
         preview: {
             placeholder: "生成的动图将显示在这里",

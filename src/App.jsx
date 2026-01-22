@@ -395,7 +395,7 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
     } catch (error) {
       console.error(error);
       if (error.message !== 'Cancelled') {
-        setProgressMsg('Error: ' + error.message);
+        setProgressMsg((language === 'zh' ? '错误：' : 'Error: ') + error.message);
       }
     } finally {
       setIsGenerating(false);
@@ -462,19 +462,19 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
                     onClick={handleUndo}
                     disabled={!canUndo}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Undo (Ctrl+Z)"
+                    title={language === 'zh' ? '撤销 (Ctrl+Z)' : 'Undo (Ctrl+Z)'}
                   >
                     <Undo2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Undo</span>
+                    <span className="hidden sm:inline">{t('buttons.undo')}</span>
                   </button>
                   <button
                     onClick={handleRedo}
                     disabled={!canRedo}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Redo (Ctrl+Y)"
+                    title={language === 'zh' ? '重做 (Ctrl+Y)' : 'Redo (Ctrl+Y)'}
                   >
                     <Redo className="w-4 h-4" />
-                    <span className="hidden sm:inline">Redo</span>
+                    <span className="hidden sm:inline">{t('buttons.redo')}</span>
                   </button>
                 </div>
 
@@ -559,7 +559,7 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
                         <span className="text-gray-600">{t('video.estimatedFrames', { count: estimatedVideoFrames })}</span>
                         {estimatedVideoFrames > 300 && (
                           <span className="text-amber-600 text-xs">
-                            Large number of frames may be slow
+                            {language === 'zh' ? '帧数较多，处理可能较慢' : 'Large number of frames may be slow'}
                           </span>
                         )}
                       </div>
@@ -662,7 +662,7 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
                   {t('steps.result')}
                 </h2>
                 <p className="text-green-600 font-medium mt-2">
-                  ✨ Successfully Generated!
+                  ✨ {language === 'zh' ? '生成成功！' : 'Successfully Generated!'}
                 </p>
                 {/* MP4 suggestion hint - only show if not already MP4 */}
                 {settings.outputFormat !== 'mp4' && (
@@ -692,13 +692,13 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
               {language === 'zh' ? '关于 GIF 制作器' : 'About GIF Maker'}
             </h2>
             <div className="prose prose-blue mx-auto text-gray-600">
-              {seoData['/'].intro.map((paragraph, index) => (
+              {(seoData['/'].intro[language] || seoData['/'].intro.en || seoData['/'].intro).map((paragraph, index) => (
                 <p key={index} className="mb-4 leading-relaxed">{paragraph}</p>
               ))}
             </div>
             {seoData['/'].features && (
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {seoData['/'].features.map((feature, idx) => (
+                {(seoData['/'].features[language] || seoData['/'].features.en || seoData['/'].features).map((feature, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <span className="text-blue-500 font-bold">✓</span>
                     <span>{feature}</span>
@@ -711,47 +711,47 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
 
         {/* Related tools */}
         <section className="space-y-3 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900">Related tools</h2>
-          <p className="text-sm text-gray-600">Edit your GIF or try other browser-native tools.</p>
+          <h2 className="text-2xl font-bold text-gray-900">{language === 'zh' ? '相关工具' : 'Related tools'}</h2>
+          <p className="text-sm text-gray-600">{language === 'zh' ? '编辑您的 GIF 或尝试其他浏览器原生工具。' : 'Edit your GIF or try other browser-native tools.'}</p>
           <div className="flex flex-wrap gap-3">
             <Link
               to="/crop-gif"
               className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
             >
-              Crop GIF
+              {language === 'zh' ? '裁剪 GIF' : 'Crop GIF'}
             </Link>
             <Link
               to="/gif-canvas"
               className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
             >
-              Add Padding
+              {language === 'zh' ? '添加边距' : 'Add Padding'}
             </Link>
             <Link
               to="/add-text-to-gif"
               className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
             >
-              Add Text
+              {language === 'zh' ? '添加文字' : 'Add Text'}
             </Link>
             <Link
               to="/image-to-mp4"
               className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
             >
-              Image to MP4
+              {language === 'zh' ? '图片转 MP4' : 'Image to MP4'}
             </Link>
             <Link
               to="/compress-mp4"
               className="px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
             >
-              Compress MP4
+              {language === 'zh' ? '压缩 MP4' : 'Compress MP4'}
             </Link>
           </div>
         </section>
 
         {/* Footer Status */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1.5 px-4 text-xs text-gray-400 flex justify-between items-center z-50">
-          <span>{isLoading ? 'Loading Core...' : 'System Ready'}</span>
+          <span>{isLoading ? (language === 'zh' ? '正在加载核心...' : 'Loading Core...') : (language === 'zh' ? '系统就绪' : 'System Ready')}</span>
           {originalDimensions && (
-            <span>Orig: {originalDimensions.width}x{originalDimensions.height}</span>
+            <span>{language === 'zh' ? '原始' : 'Orig'}: {originalDimensions.width}x{originalDimensions.height}</span>
           )}
         </div>
 
