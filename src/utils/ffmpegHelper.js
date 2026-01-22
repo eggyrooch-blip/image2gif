@@ -22,8 +22,78 @@ import { buildOverlayFilterForPalette, validateOverlayConfig, buildOverlayFilter
  * @property {string} [fillColor]
  * @property {string} [compression] - Compression level: 'none', 'light', 'medium', 'heavy'
  * @property {Object} [overlay] - Overlay configuration
+ * @property {Object} [textOverlay] - Text overlay configuration
  * @property {number} [fps] - Target FPS for video output
  */
+
+/**
+ * Get text position coordinates based on position ID
+ */
+const getTextPosition = (posId, width, height, textWidth, textHeight) => {
+    const padding = 20;
+    switch (posId) {
+        case 'top-left': return { x: padding, y: padding + textHeight };
+        case 'top': return { x: (width - textWidth) / 2, y: padding + textHeight };
+        case 'top-right': return { x: width - textWidth - padding, y: padding + textHeight };
+        case 'left': return { x: padding, y: (height + textHeight) / 2 };
+        case 'center': return { x: (width - textWidth) / 2, y: (height + textHeight) / 2 };
+        case 'right': return { x: width - textWidth - padding, y: (height + textHeight) / 2 };
+        case 'bottom-left': return { x: padding, y: height - padding };
+        case 'bottom': return { x: (width - textWidth) / 2, y: height - padding };
+        case 'bottom-right': return { x: width - textWidth - padding, y: height - padding };
+        default: return { x: (width - textWidth) / 2, y: height - padding };
+    }
+};
+
+/**
+ * Draw text overlay on a canvas context
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} width
+ * @param {number} height
+ * @param {Object} textConfig
+ */
+const drawTextOnCanvas = (ctx, width, height, textConfig) => {
+    if (!textConfig || !textConfig.enabled || !textConfig.text) return;
+
+    const {
+        text,
+        position = 'bottom',
+        fontSize = 32,
+        fontColor = '#FFFFFF',
+        strokeEnabled = true,
+        strokeColor = '#000000',
+        strokeWidth = 2,
+        bgStrip = false
+    } = textConfig;
+
+    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+    ctx.textBaseline = 'bottom';
+
+    // Measure text
+    const metrics = ctx.measureText(text);
+    const textWidth = metrics.width;
+    const textHeight = fontSize;
+
+    const pos = getTextPosition(position, width, height, textWidth, textHeight);
+
+    // Draw background strip if enabled
+    if (bgStrip) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, pos.y - textHeight - 10, width, textHeight + 20);
+    }
+
+    // Draw stroke/border
+    if (strokeEnabled && strokeWidth > 0) {
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = strokeWidth * 2;
+        ctx.lineJoin = 'round';
+        ctx.strokeText(text, pos.x, pos.y);
+    }
+
+    // Draw text
+    ctx.fillStyle = fontColor;
+    ctx.fillText(text, pos.x, pos.y);
+};
 
 export const generateId = () => crypto.randomUUID();
 
@@ -291,6 +361,62 @@ const normalizeImage = async (file, width, height, fillColor = 'black') => {
 };
 
 /**
+ * Normalize image and optionally apply text overlay
+ * @param {File} file
+ * @param {number} width
+ * @param {number} height
+ * @param {string} fillColor
+ * @param {Object|null} textConfig - Text overlay configuration
+ * @returns {Promise<Blob>}
+ */
+const normalizeImageWithText = async (file, width, height, fillColor = 'black', textConfig = null) => {
+    // Get base normalized image
+    const baseBlob = await normalizeImage(file, width, height, fillColor);
+
+    // If no text config or text not enabled, return base image
+    if (!textConfig || !textConfig.enabled || !textConfig.text) {
+        return baseBlob;
+    }
+
+    // Apply text overlay using regular HTMLCanvasElement (not OffscreenCanvas)
+    // This ensures proper font rendering support
+    const img = await createImageBitmap(baseBlob);
+
+    // Force use of regular canvas for text rendering (OffscreenCanvas may have font issues)
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        throw new Error('Failed to get canvas context for text overlay');
+    }
+
+    // Draw the base image
+    ctx.drawImage(img, 0, 0, width, height);
+
+    // Draw text on top
+    drawTextOnCanvas(ctx, width, height, textConfig);
+
+    // Close ImageBitmap to free memory
+    if (img.close) {
+        img.close();
+    }
+
+    // Convert to PNG blob using the regular canvas toBlob method
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (blob) {
+                resolve(blob);
+            } else {
+                reject(new Error('Canvas toBlob returned null'));
+            }
+        }, 'image/png');
+    });
+};
+
+
+/**
  * Process images to high-quality GIF using professional FFmpeg parameters.
  * Optimized for performance with:
  * - ImageBitmap for faster image loading
@@ -312,6 +438,7 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
     const shouldUseCrossfade = crossfadeEnabled && images.length <= MAX_CROSSFADE_SOURCE_FRAMES;
     const fillColor = settings.fillColor ?? 'black'; // Default: black background
     const compression = settings.compression ?? 'none'; // Default: no compression
+    const textOverlay = settings.textOverlay ?? null; // Text overlay config
 
     // Compression settings: control palette colors for file size reduction
     const compressionConfig = {
@@ -373,7 +500,7 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
         updateProgress(`Normalizing image ${i + 1}/${images.length}...`, i);
 
         try {
-            const blob = await normalizeImage(images[i].file, width, height, fillColor);
+            const blob = await normalizeImageWithText(images[i].file, width, height, fillColor, textOverlay);
             const name = `frame_${i.toString().padStart(3, '0')}.png`;
 
             // Yield before fetchFile (can be slow for large images)
@@ -638,7 +765,7 @@ export const processImagesToGif = async (ffmpeg, images, settings, onProgress) =
 
     updateProgress('Done!', totalSteps);
 
-    return URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' }));
+    return URL.createObjectURL(new Blob([data], { type: 'image/gif' }));
 };
 
 /**
@@ -652,6 +779,7 @@ export const processImagesToWebP = async (ffmpeg, images, settings, onProgress) 
     const loop = settings.loop ?? 0; // Default: infinite loop
     const fillColor = settings.fillColor ?? 'black';
     const compression = settings.compression ?? 'none';
+    const textOverlay = settings.textOverlay ?? null; // Text overlay config
 
     // WebP quality mapping (higher = better quality, larger file)
     const qualityMap = {
@@ -702,7 +830,7 @@ export const processImagesToWebP = async (ffmpeg, images, settings, onProgress) 
         updateProgress(`Normalizing image ${i + 1}/${images.length}...`, i);
 
         try {
-            const blob = await normalizeImage(images[i].file, width, height, fillColor);
+            const blob = await normalizeImageWithText(images[i].file, width, height, fillColor, textOverlay);
             const name = `frame_${i.toString().padStart(3, '0')}.png`;
 
             await yieldToMain();
@@ -773,7 +901,7 @@ export const processImagesToWebP = async (ffmpeg, images, settings, onProgress) 
 
     updateProgress('Done!', totalSteps);
 
-    return URL.createObjectURL(new Blob([data.buffer], { type: 'image/webp' }));
+    return URL.createObjectURL(new Blob([data], { type: 'image/webp' }));
 };
 
 /**
@@ -787,6 +915,7 @@ export const processImagesToAPNG = async (ffmpeg, images, settings, onProgress) 
     const loop = settings.loop ?? 0; // Default: infinite loop (0 = infinite in APNG)
     const fillColor = settings.fillColor ?? 'black';
     const compression = settings.compression ?? 'none';
+    const textOverlay = settings.textOverlay ?? null; // Text overlay config
 
     // APNG compression level mapping (higher = smaller file, slower)
     const compressionMap = {
@@ -837,7 +966,7 @@ export const processImagesToAPNG = async (ffmpeg, images, settings, onProgress) 
         updateProgress(`Normalizing image ${i + 1}/${images.length}...`, i);
 
         try {
-            const blob = await normalizeImage(images[i].file, width, height, fillColor);
+            const blob = await normalizeImageWithText(images[i].file, width, height, fillColor, textOverlay);
             const name = `frame_${i.toString().padStart(3, '0')}.png`;
 
             await yieldToMain();
@@ -909,7 +1038,7 @@ export const processImagesToAPNG = async (ffmpeg, images, settings, onProgress) 
 
     updateProgress('Done!', totalSteps);
 
-    return URL.createObjectURL(new Blob([data.buffer], { type: 'image/apng' }));
+    return URL.createObjectURL(new Blob([data], { type: 'image/apng' }));
 };
 
 /**
@@ -925,6 +1054,7 @@ export const processImagesToMp4 = async (ffmpeg, images, settings, onProgress) =
     // Default fps to 24 if not specified (or 'auto')
     const fps = (settings.fps && settings.fps !== 'auto') ? settings.fps : 24;
     const fillColor = settings.fillColor ?? 'black';
+    const textOverlay = settings.textOverlay ?? null; // Text overlay config
 
     // Calculate total steps
     const totalSteps = images.length + 3; // images + list + encode + done
@@ -968,7 +1098,7 @@ export const processImagesToMp4 = async (ffmpeg, images, settings, onProgress) =
         try {
             // Note: We use targetWidth/Height here to ensure all inputs match target resolution
             // This simplifies the FFmpeg filter chain later
-            const blob = await normalizeImage(images[i].file, targetWidth, targetHeight, fillColor);
+            const blob = await normalizeImageWithText(images[i].file, targetWidth, targetHeight, fillColor, textOverlay);
             const name = `frame_${i.toString().padStart(3, '0')}.png`;
 
             await yieldToMain();
@@ -1062,7 +1192,7 @@ export const processImagesToMp4 = async (ffmpeg, images, settings, onProgress) =
 
     updateProgress('Done!', totalSteps);
 
-    return URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+    return URL.createObjectURL(new Blob([data], { type: 'video/mp4' }));
 };
 
 /**

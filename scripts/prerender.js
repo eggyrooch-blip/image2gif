@@ -58,15 +58,20 @@ const processRoute = async (browser, route) => {
     try {
         await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
 
-        // Wait for App to be mounted - checking for root div content
-        await page.waitForSelector('#root > div', { timeout: 5000 });
+        // Wait for App to be mounted - specifically the new SEO content or main heading
+        // This ensures the JS has hydrated and rendered the "About GIF Maker" section
+        await page.waitForSelector('h1', { timeout: 10000 });
+
+        // Give a small buffer for any lazy loaded components/images
+        await new Promise(r => setTimeout(r, 1000));
 
         // Get the full HTML
         let html = await page.content();
 
         // --- SEO Injection ---
-        // We inject the Head tags here because the client-side app (currently) might not update them perfectly,
-        // and we want to ensure specific control over what Google sees.
+        // We now rely on the component (App.jsx, LandingPage.jsx) to render the visible body content.
+        // We only need to ensure the HEAD tags are correct (Title, Description, Canonical, OG, JSON-LD).
+        // The client-side might update them, but we enforce them here to be 100% sure for the bot.
 
         const data = seoData[route.path];
         if (data) {
@@ -108,12 +113,7 @@ const processRoute = async (browser, route) => {
             // Clean old JSON-LD first to avoid duplicates if any exists in template
             html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
 
-            // Re-build JSON-LD (Web Application + FAQ + Breadcrumbs)
-            // We can reuse logic similar to generate-seo.js or simplify.
-            // For now, let's just make sure specific "WebApplication" schema is present.
-            // (Ideally we reuse the robust logic from generate-seo.js but rewritten here would be long.
-            //  Let's settle for injecting the basic Schema if missing, or relying on what's in index.html if it's generic.
-            //  But specific pages need specific schema. Let's add basic one.)
+            // Inject Schema
             const schema = {
                 "@context": "https://schema.org",
                 "@type": "WebApplication",

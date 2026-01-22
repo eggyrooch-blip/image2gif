@@ -32,24 +32,33 @@ export const getDefaultOverlayConfig = () => ({
 /**
  * Position expressions for FFmpeg overlay filter
  * Each function takes margin and returns x, y expressions
+ * Supports 9-grid positions (3x3)
  */
 const POSITION_EXPRESSIONS = {
     'top-left': (m) => ({ x: String(m), y: String(m) }),
+    'top': (m) => ({ x: '(main_w-overlay_w)/2', y: String(m) }),
     'top-right': (m) => ({ x: `main_w-overlay_w-${m}`, y: String(m) }),
+    'left': (m) => ({ x: String(m), y: '(main_h-overlay_h)/2' }),
+    'center': () => ({ x: '(main_w-overlay_w)/2', y: '(main_h-overlay_h)/2' }),
+    'right': (m) => ({ x: `main_w-overlay_w-${m}`, y: '(main_h-overlay_h)/2' }),
     'bottom-left': (m) => ({ x: String(m), y: `main_h-overlay_h-${m}` }),
-    'bottom-right': (m) => ({ x: `main_w-overlay_w-${m}`, y: `main_h-overlay_h-${m}` }),
-    'center': () => ({ x: '(main_w-overlay_w)/2', y: '(main_h-overlay_h)/2' })
+    'bottom': (m) => ({ x: '(main_w-overlay_w)/2', y: `main_h-overlay_h-${m}` }),
+    'bottom-right': (m) => ({ x: `main_w-overlay_w-${m}`, y: `main_h-overlay_h-${m}` })
 };
 
 /**
- * Available overlay positions
+ * Available overlay positions (9-grid layout)
  */
 export const OVERLAY_POSITIONS = [
     { id: 'top-left', labelKey: 'overlay.positions.top-left' },
+    { id: 'top', labelKey: 'overlay.positions.top' },
     { id: 'top-right', labelKey: 'overlay.positions.top-right' },
+    { id: 'left', labelKey: 'overlay.positions.left' },
+    { id: 'center', labelKey: 'overlay.positions.center' },
+    { id: 'right', labelKey: 'overlay.positions.right' },
     { id: 'bottom-left', labelKey: 'overlay.positions.bottom-left' },
-    { id: 'bottom-right', labelKey: 'overlay.positions.bottom-right' },
-    { id: 'center', labelKey: 'overlay.positions.center' }
+    { id: 'bottom', labelKey: 'overlay.positions.bottom' },
+    { id: 'bottom-right', labelKey: 'overlay.positions.bottom-right' }
 ];
 
 /**

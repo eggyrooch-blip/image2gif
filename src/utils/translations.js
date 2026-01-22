@@ -216,15 +216,50 @@ export const translations = {
             position: "Position",
             positions: {
                 'top-left': "Top Left",
+                'top': "Top",
                 'top-right': "Top Right",
+                'left': "Left",
+                'center': "Center",
+                'right': "Right",
                 'bottom-left': "Bottom Left",
-                'bottom-right': "Bottom Right",
-                'center': "Center"
+                'bottom': "Bottom",
+                'bottom-right': "Bottom Right"
             },
             scale: "Scale",
             margin: "Margin",
             opacity: "Opacity",
             previewHint: "Sticker will be applied when generating output"
+        },
+        textOverlay: {
+            title: "Add Text",
+            enable: "Enable Text",
+            active: "Active",
+            templates: {
+                title: "Quick Templates",
+                meme: "Meme",
+                subtitle: "Subtitle",
+                watermark: "Watermark"
+            },
+            textContent: "Text Content",
+            textPlaceholder: "Enter your text here...",
+            position: {
+                title: "Position",
+                topLeft: "Top Left",
+                top: "Top",
+                topRight: "Top Right",
+                left: "Left",
+                center: "Center",
+                right: "Right",
+                bottomLeft: "Bottom Left",
+                bottom: "Bottom",
+                bottomRight: "Bottom Right"
+            },
+            fontSize: "Font Size",
+            fontColor: "Color",
+            stroke: "Stroke",
+            bgStrip: "Background Strip",
+            bgStripHint: "Semi-transparent background behind text",
+            previewHint: "Text will be applied to all frames when generating"
         },
         outputFormat: {
             label: "Output Format",
@@ -486,15 +521,50 @@ export const translations = {
             position: "位置",
             positions: {
                 'top-left': "左上",
+                'top': "上",
                 'top-right': "右上",
+                'left': "左",
+                'center': "居中",
+                'right': "右",
                 'bottom-left': "左下",
-                'bottom-right': "右下",
-                'center': "居中"
+                'bottom': "下",
+                'bottom-right': "右下"
             },
             scale: "缩放",
             margin: "边距",
             opacity: "透明度",
             previewHint: "贴图将在生成时应用"
+        },
+        textOverlay: {
+            title: "添加文字",
+            enable: "启用文字",
+            active: "已启用",
+            templates: {
+                title: "快速模板",
+                meme: "表情包",
+                subtitle: "字幕",
+                watermark: "水印"
+            },
+            textContent: "文字内容",
+            textPlaceholder: "在此输入文字...",
+            position: {
+                title: "位置",
+                topLeft: "左上",
+                top: "上",
+                topRight: "右上",
+                left: "左",
+                center: "居中",
+                right: "右",
+                bottomLeft: "左下",
+                bottom: "下",
+                bottomRight: "右下"
+            },
+            fontSize: "字号",
+            fontColor: "颜色",
+            stroke: "描边",
+            bgStrip: "背景条",
+            bgStripHint: "文字背景半透明条",
+            previewHint: "文字将在生成时添加到每一帧"
         },
         outputFormat: {
             label: "输出格式",

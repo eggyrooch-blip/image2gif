@@ -7,6 +7,7 @@ import SettingsPanel from './components/SettingsPanel';
 import PreviewArea from './components/PreviewArea';
 import FrameEditor from './components/FrameEditor';
 import OverlaySettings from './components/OverlaySettings';
+import TextOverlaySettings, { getDefaultTextConfig } from './components/TextOverlaySettings';
 import ErrorBoundary from './components/ErrorBoundary';
 import FAQ from './components/FAQ';
 import ToolTabs from './components/ToolTabs';
@@ -23,6 +24,7 @@ import { getDefaultOverlayConfig } from './utils/overlayHelper';
 import { estimateFrameCount } from './utils/videoHelper';
 import { Loader2, Wand2, Undo2, Redo, X } from 'lucide-react';
 import { useLanguage } from './contexts/LanguageContext';
+import { seoData } from './seo/seoData';
 
 const getImageDimensions = (file) => {
   return new Promise((resolve) => {
@@ -59,10 +61,14 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressMsg, setProgressMsg] = useState('');
   const [gifUrl, setGifUrl] = useState(null);
+  const [generatedFormat, setGeneratedFormat] = useState(null); // Track format of generated output
   const [originalDimensions, setOriginalDimensions] = useState(null);
 
   // Overlay settings state
   const [overlaySettings, setOverlaySettings] = useState(getDefaultOverlayConfig());
+
+  // Text overlay settings state
+  const [textOverlaySettings, setTextOverlaySettings] = useState(getDefaultTextConfig());
 
   // Frame editor state
   const [editorOpen, setEditorOpen] = useState(false);
@@ -358,7 +364,7 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
 
         // Calculate delay from FPS for video frames
         const videoDelay = Math.round(1000 / videoSettings.fps);
-        const settingsWithDelay = { ...settings, delay: videoDelay, overlay: overlaySettings };
+        const settingsWithDelay = { ...settings, delay: videoDelay, overlay: overlaySettings, textOverlay: textOverlaySettings };
 
         setProgressMsg(t('status.generating'));
         const url = await processImagesToFormat(ffmpeg, framesToProcess, settingsWithDelay, (msg) => {
@@ -371,13 +377,15 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
         });
 
         setGifUrl(url);
+        setGeneratedFormat(settings.outputFormat || 'gif');
       } else {
         // Image mode: use existing images
-        const settingsWithOverlay = { ...settings, overlay: overlaySettings };
+        const settingsWithOverlay = { ...settings, overlay: overlaySettings, textOverlay: textOverlaySettings };
         const url = await processImagesToFormat(ffmpeg, images, settingsWithOverlay, (msg) => {
           setProgressMsg(msg);
         });
         setGifUrl(url);
+        setGeneratedFormat(settings.outputFormat || 'gif');
       }
 
       setTimeout(() => {
@@ -395,12 +403,14 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
   };
 
   const handleDownload = () => {
-    if (!gifUrl) return;
-    const extension = getFormatExtension(settings.outputFormat || 'gif');
+    if (!gifUrl || !generatedFormat) return;
+    const extension = getFormatExtension(generatedFormat);
     const a = document.createElement('a');
     a.href = gifUrl;
     a.download = `animated.${extension}`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
   };
 
   // Hero content based on mode
@@ -408,8 +418,8 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
     title: language === 'zh' ? '视频转 GIF' : 'Video to GIF',
     subtitle: language === 'zh' ? '纯前端本地视频转 GIF，保护隐私，无水印。' : 'Turn video clips into GIFs locally. Secure, no uploads.',
   } : {
-    title: language === 'zh' ? '图片转 GIF' : 'Image to GIF',
-    subtitle: language === 'zh' ? '纯前端本地图片合成 GIF，保护隐私，无水印。' : 'Create GIFs from images locally. Secure, no uploads.',
+    title: language === 'zh' ? '图片转 GIF / MP4' : 'Image to GIF / MP4',
+    subtitle: language === 'zh' ? '纯前端本地图片合成动画，保护隐私，无水印。' : 'Create animations from images locally. Secure, no uploads.',
   };
 
   return (
@@ -585,6 +595,13 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
             onChange={setOverlaySettings}
             disabled={isGenerating}
           />
+
+          {/* Text Overlay Settings */}
+          <TextOverlaySettings
+            config={textOverlaySettings}
+            onChange={setTextOverlaySettings}
+            disabled={isGenerating}
+          />
         </section>
 
         {/* Step 3: Generate Action - Always Visible */}
@@ -657,7 +674,7 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
                   </p>
                 )}
               </div>
-              <PreviewArea gifUrl={gifUrl} onDownload={handleDownload} format={settings.outputFormat || 'gif'} />
+              <PreviewArea gifUrl={gifUrl} onDownload={handleDownload} format={generatedFormat || 'gif'} />
             </div>
           )}
         </section>
@@ -667,6 +684,30 @@ function App({ initialMode = 'images', lockMode = false, initialSettings = {} })
 
         {/* FAQ Section */}
         <FAQ />
+
+        {/* SEO Content (Intro for Home) */}
+        {seoData['/'] && seoData['/'].intro && (
+          <section className="max-w-3xl mx-auto pt-8 pb-16 px-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+              {language === 'zh' ? '关于 GIF 制作器' : 'About GIF Maker'}
+            </h2>
+            <div className="prose prose-blue mx-auto text-gray-600">
+              {seoData['/'].intro.map((paragraph, index) => (
+                <p key={index} className="mb-4 leading-relaxed">{paragraph}</p>
+              ))}
+            </div>
+            {seoData['/'].features && (
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {seoData['/'].features.map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <span className="text-blue-500 font-bold">✓</span>
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Related tools */}
         <section className="space-y-3 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">

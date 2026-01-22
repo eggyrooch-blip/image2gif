@@ -187,18 +187,18 @@ const OverlaySettings = ({
                         <label className="text-sm font-bold text-gray-700 block">
                             {t('overlay.position')}
                         </label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-2 w-fit">
                             {OVERLAY_POSITIONS.map((pos) => (
                                 <button
                                     key={pos.id}
                                     onClick={() => handleChange('position', pos.id)}
                                     disabled={disabled || !config.enabled}
-                                    className={`p-2 text-sm rounded-lg border transition-all ${config.position === pos.id
+                                    className={`w-10 h-10 rounded-lg border transition-all flex items-center justify-center ${config.position === pos.id
                                             ? 'border-blue-500 bg-blue-50 text-blue-700 ring-1 ring-blue-500'
-                                            : 'border-gray-200 bg-white text-gray-600 hover:border-blue-300'
+                                            : 'border-gray-200 bg-white hover:border-blue-300 text-gray-400'
                                         } ${(!config.enabled || disabled) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    {t(pos.labelKey)}
+                                    <Image className="w-3 h-3" />
                                 </button>
                             ))}
                         </div>
