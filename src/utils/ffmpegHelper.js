@@ -1,5 +1,5 @@
 import { fetchFile } from '@ffmpeg/util';
-import { buildOverlayFilterForPalette, validateOverlayConfig } from './overlayHelper';
+import { buildOverlayFilterForPalette, validateOverlayConfig, buildOverlayFilterComplex } from './overlayHelper';
 
 /**
  * @typedef {Object} ImageItem
@@ -22,6 +22,7 @@ import { buildOverlayFilterForPalette, validateOverlayConfig } from './overlayHe
  * @property {string} [fillColor]
  * @property {string} [compression] - Compression level: 'none', 'light', 'medium', 'heavy'
  * @property {Object} [overlay] - Overlay configuration
+ * @property {number} [fps] - Target FPS for video output
  */
 
 export const generateId = () => crypto.randomUUID();
@@ -912,6 +913,159 @@ export const processImagesToAPNG = async (ffmpeg, images, settings, onProgress) 
 };
 
 /**
+ * Process images to MP4 using FFmpeg (H.264).
+ */
+export const processImagesToMp4 = async (ffmpeg, images, settings, onProgress) => {
+    const { delay, width } = settings;
+    // MP4 requires even dimensions
+    const makeEven = (n) => n % 2 === 0 ? n : n + 1;
+    const targetWidth = makeEven(width);
+    const targetHeight = makeEven(settings.height || Math.round(width * (2 / 3)));
+
+    // Default fps to 24 if not specified (or 'auto')
+    const fps = (settings.fps && settings.fps !== 'auto') ? settings.fps : 24;
+    const fillColor = settings.fillColor ?? 'black';
+
+    // Calculate total steps
+    const totalSteps = images.length + 3; // images + list + encode + done
+    let currentStep = 0;
+
+    const startTime = performance.now();
+
+    const formatTime = (ms) => {
+        if (ms < 1000) return '<1s';
+        const seconds = Math.round(ms / 1000);
+        if (seconds < 60) return `${seconds}s`;
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}m${secs}s`;
+    };
+
+    const updateProgress = (message, step = null) => {
+        if (step !== null) currentStep = step;
+        const percent = Math.round((currentStep / totalSteps) * 100);
+
+        const elapsed = performance.now() - startTime;
+        let timeInfo = '';
+        if (currentStep > 0 && percent < 100) {
+            const avgTimePerStep = elapsed / currentStep;
+            const remainingSteps = totalSteps - currentStep;
+            const estimatedRemaining = avgTimePerStep * remainingSteps;
+            timeInfo = ` (${formatTime(estimatedRemaining)} remaining)`;
+        }
+
+        onProgress(`[${percent}%] ${message}${timeInfo}`);
+    };
+
+    updateProgress('Preparing images...', 0);
+
+    const fileListEntries = [];
+
+    // Process images
+    for (let i = 0; i < images.length; i++) {
+        updateProgress(`Normalizing image ${i + 1}/${images.length}...`, i);
+
+        try {
+            // Note: We use targetWidth/Height here to ensure all inputs match target resolution
+            // This simplifies the FFmpeg filter chain later
+            const blob = await normalizeImage(images[i].file, targetWidth, targetHeight, fillColor);
+            const name = `frame_${i.toString().padStart(3, '0')}.png`;
+
+            await yieldToMain();
+
+            const fileData = await fetchFile(blob);
+            await yieldToMain();
+
+            await ffmpeg.writeFile(name, fileData);
+            fileListEntries.push(name);
+        } catch (e) {
+            console.error('Error normalizing image:', i, e);
+            throw new Error(`Failed to process image ${i + 1}: ${e.message}`);
+        }
+    }
+
+    // Add overlay if enabled
+    const overlay = settings.overlay ?? null;
+    const hasOverlay = overlay?.enabled && overlay?.file;
+    const overlayFileName = 'overlay.png';
+
+    if (hasOverlay) {
+        updateProgress('Preparing overlay...', images.length);
+        const overlayData = await fetchFile(overlay.file);
+        await ffmpeg.writeFile(overlayFileName, overlayData);
+    }
+
+    updateProgress('Generating file list...', images.length + 1);
+    await yieldToMain();
+
+    // Prepare list.txt
+    let listContent = fileListEntries.map((name, idx) => {
+        const frameImage = images[idx];
+        const frameDelay = frameImage?.delay ?? delay;
+        const frameDuration = (frameDelay / 1000).toFixed(3);
+        return `file '${name}'\nduration ${frameDuration}`;
+    }).join('\n');
+
+    if (fileListEntries.length > 0) {
+        listContent += `\nfile '${fileListEntries[fileListEntries.length - 1]}'`;
+    }
+
+    await ffmpeg.writeFile('list.txt', listContent);
+
+    // ============================================
+    // ENCODING
+    // ============================================
+
+    updateProgress('Encoding MP4...', images.length + 2);
+    await yieldToMain();
+
+    const args = ['-f', 'concat', '-safe', '0', '-i', 'list.txt'];
+
+    // Add overlay input if enabled
+    if (hasOverlay) {
+        args.push('-i', overlayFileName);
+        // Use filter_complex for overlay
+        const overlayFilter = buildOverlayFilterComplex(targetWidth, overlay);
+        // Map [0:v] through overlay
+        args.push('-filter_complex', `${overlayFilter},format=yuv420p`);
+    } else {
+        args.push('-pix_fmt', 'yuv420p');
+    }
+
+    args.push(
+        '-r', String(fps),
+        '-vsync', 'vfr',
+        '-c:v', 'libx264',
+        '-movflags', '+faststart',
+        '-preset', 'veryfast',  // Use veryfast for browser performance
+        '-y', 'output.mp4'
+    );
+
+    await ffmpeg.exec(args);
+
+    updateProgress('Reading output...', images.length + 3);
+    await yieldToMain();
+
+    const data = await ffmpeg.readFile('output.mp4');
+
+    // Cleanup
+    try {
+        for (const name of fileListEntries) {
+            await ffmpeg.deleteFile(name);
+        }
+        await ffmpeg.deleteFile('list.txt');
+        await ffmpeg.deleteFile('output.mp4');
+        if (hasOverlay) await ffmpeg.deleteFile(overlayFileName);
+    } catch (e) {
+        // Ignore cleanup errors
+    }
+
+    updateProgress('Done!', totalSteps);
+
+    return URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+};
+
+/**
  * Process images to the specified output format
  * @param {FFmpeg} ffmpeg - FFmpeg instance
  * @param {ImageItem[]} images - Array of images
@@ -927,6 +1081,8 @@ export const processImagesToFormat = async (ffmpeg, images, settings, onProgress
             return processImagesToWebP(ffmpeg, images, settings, onProgress);
         case 'apng':
             return processImagesToAPNG(ffmpeg, images, settings, onProgress);
+        case 'mp4':
+            return processImagesToMp4(ffmpeg, images, settings, onProgress);
         case 'gif':
         default:
             return processImagesToGif(ffmpeg, images, settings, onProgress);
@@ -942,7 +1098,8 @@ export const getFormatExtension = (format) => {
     const extensions = {
         gif: 'gif',
         webp: 'webp',
-        apng: 'png'
+        apng: 'png',
+        mp4: 'mp4'
     };
     return extensions[format] || 'gif';
 };
@@ -956,7 +1113,8 @@ export const getFormatMimeType = (format) => {
     const mimeTypes = {
         gif: 'image/gif',
         webp: 'image/webp',
-        apng: 'image/apng'
+        apng: 'image/apng',
+        mp4: 'video/mp4'
     };
     return mimeTypes[format] || 'image/gif';
 };
@@ -970,7 +1128,212 @@ export const getFormatLabel = (format) => {
     const labels = {
         gif: 'GIF',
         webp: 'WebP',
-        apng: 'APNG'
+        apng: 'APNG',
+        mp4: 'MP4'
     };
     return labels[format] || 'GIF';
+};
+
+/**
+ * Compress a GIF by optimizing palette, resolution, and FPS.
+ * Implements ITERATIVE COMPRESSION to meet target file size.
+ * 
+ * Strategies (applied progressively if needed):
+ * 1. Reduce color palette (maxColors)
+ * 2. Reduce FPS
+ * 3. Reduce resolution (scale)
+ * 4. Repeat with more aggressive settings until target is met
+ * 
+ * @param {FFmpeg} ffmpeg
+ * @param {File} file
+ * @param {Object} options
+ * @param {string} options.quality - 'light' (256 colors), 'medium' (128 colors), 'heavy' (64 colors)
+ * @param {number} [options.targetHeight] - Optional target height to scale to
+ * @param {number} [options.fps] - Target FPS
+ * @param {number} [options.targetSizeBytes] - Target file size in bytes (e.g., 15MB = 15 * 1024 * 1024)
+ * @param {Function} onProgress
+ */
+export const compressGif = async (ffmpeg, file, options, onProgress) => {
+    const { quality = 'medium', targetHeight, fps, targetSizeBytes } = options;
+
+    const qualityMap = {
+        light: 256,
+        medium: 128,
+        heavy: 64
+    };
+
+    // Define compression levels for iterative compression
+    // Each level is progressively more aggressive
+    const compressionLevels = [
+        { colors: qualityMap[quality] || 128, fpsMultiplier: 1.0, scaleMultiplier: 1.0, name: 'Initial' },
+        { colors: Math.min(qualityMap[quality] || 128, 128), fpsMultiplier: 0.8, scaleMultiplier: 1.0, name: 'Reduce FPS' },
+        { colors: 64, fpsMultiplier: 0.7, scaleMultiplier: 1.0, name: 'Reduce colors' },
+        { colors: 64, fpsMultiplier: 0.6, scaleMultiplier: 0.85, name: 'Reduce resolution 15%' },
+        { colors: 48, fpsMultiplier: 0.5, scaleMultiplier: 0.75, name: 'Aggressive: 25% smaller' },
+        { colors: 32, fpsMultiplier: 0.4, scaleMultiplier: 0.6, name: 'Very aggressive: 40% smaller' },
+        { colors: 24, fpsMultiplier: 0.3, scaleMultiplier: 0.5, name: 'Maximum: 50% smaller' },
+    ];
+
+    const inputName = `input_${file.name.replace(/\s+/g, '_')}`;
+    const outputName = 'compressed.gif';
+    const paletteName = 'palette.png';
+
+    const cleanUp = async (keepInput = false) => {
+        try {
+            if (!keepInput) await ffmpeg.deleteFile(inputName);
+            await ffmpeg.deleteFile(outputName);
+            await ffmpeg.deleteFile(paletteName);
+        } catch (e) { }
+    };
+
+    /**
+     * Perform a single compression attempt with given parameters
+     */
+    const compressOnce = async (maxColors, currentFps, currentHeight) => {
+        // Build filter chain
+        let filters = [];
+
+        if (currentHeight) {
+            filters.push(`scale=-2:${currentHeight}:flags=lanczos`);
+        }
+
+        if (currentFps) {
+            filters.push(`fps=${currentFps}`);
+        }
+
+        const preFilter = filters.join(',');
+
+        // Pass 1: Generate palette
+        let paletteGenFilter = 'palettegen=reserve_transparent=off:stats_mode=diff';
+        if (maxColors < 256) {
+            paletteGenFilter += `:max_colors=${maxColors}`;
+        }
+
+        let pass1Filter = paletteGenFilter;
+        if (preFilter) {
+            pass1Filter = `${preFilter},${paletteGenFilter}`;
+        }
+
+        await ffmpeg.exec([
+            '-i', inputName,
+            '-vf', pass1Filter,
+            '-y', paletteName
+        ]);
+
+        // Pass 2: Encode GIF
+        let filterComplex = '';
+        if (preFilter) {
+            filterComplex = `[0:v]${preFilter}[processed];[processed][1:v]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`;
+        } else {
+            filterComplex = `[0:v][1:v]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`;
+        }
+
+        await ffmpeg.exec([
+            '-i', inputName,
+            '-i', paletteName,
+            '-filter_complex', filterComplex,
+            '-y', outputName
+        ]);
+
+        const data = await ffmpeg.readFile(outputName);
+        return data;
+    };
+
+    try {
+        onProgress({ phase: 'preparing', text: 'Preparing file...' });
+        await ffmpeg.writeFile(inputName, await fetchFile(file));
+
+        // Determine base parameters
+        const baseFps = fps || 15; // Default FPS if not specified
+        const baseHeight = targetHeight || null;
+
+        // For iterative compression, we need to know the original dimensions
+        // to apply scale multipliers when no targetHeight is specified
+        let originalHeight = null;
+        if (!baseHeight && targetSizeBytes) {
+            // Get original dimensions using Image API
+            try {
+                const imgUrl = URL.createObjectURL(file);
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = imgUrl;
+                });
+                originalHeight = img.height;
+                URL.revokeObjectURL(imgUrl);
+            } catch {
+                originalHeight = 720; // Fallback to 720p
+            }
+        }
+
+        let result = null;
+        let finalSize = 0;
+        let attemptCount = 0;
+        const maxAttempts = targetSizeBytes ? compressionLevels.length : 1;
+
+        for (let i = 0; i < maxAttempts; i++) {
+            attemptCount = i + 1;
+            const level = compressionLevels[i];
+
+            // Calculate parameters for this attempt
+            const currentColors = level.colors;
+            const currentFps = Math.max(5, Math.round(baseFps * level.fpsMultiplier)); // Min 5 FPS
+
+            // Apply scale multiplier: use baseHeight if specified, otherwise use originalHeight for later attempts
+            let currentHeight = null;
+            if (baseHeight) {
+                currentHeight = Math.round(baseHeight * level.scaleMultiplier);
+            } else if (level.scaleMultiplier < 1 && originalHeight) {
+                // No explicit target, but we need to scale down for this compression level
+                currentHeight = Math.round(originalHeight * level.scaleMultiplier);
+            }
+
+            if (i === 0) {
+                onProgress({ phase: 'analyzing', text: 'Analyzing colors...' });
+            } else {
+                onProgress({
+                    phase: 'encoding',
+                    text: `Attempt ${attemptCount}: ${level.name} (${currentColors} colors, ${currentFps}fps${currentHeight ? `, ${currentHeight}p` : ''})...`
+                });
+            }
+
+            // Perform compression
+            onProgress({ phase: 'encoding', text: i === 0 ? 'Optimizing & Encoding...' : `Re-compressing (attempt ${attemptCount})...` });
+
+            const data = await compressOnce(currentColors, currentFps, currentHeight);
+            finalSize = data.length;
+
+            // Check if we meet the target size
+            if (!targetSizeBytes || finalSize <= targetSizeBytes) {
+                result = data;
+                break;
+            }
+
+            // Log progress for debugging
+            const targetMB = (targetSizeBytes / (1024 * 1024)).toFixed(1);
+            const currentMB = (finalSize / (1024 * 1024)).toFixed(1);
+            console.log(`Compression attempt ${attemptCount}: ${currentMB}MB (target: ${targetMB}MB) - trying more aggressive settings...`);
+
+            // If this is the last attempt, use this result even if over target
+            if (i === maxAttempts - 1) {
+                result = data;
+                console.warn(`Could not reach target size ${targetMB}MB. Final size: ${currentMB}MB`);
+            }
+        }
+
+        onProgress({ phase: 'finalizing', text: 'Finalizing...' });
+
+        await cleanUp();
+
+        return {
+            url: URL.createObjectURL(new Blob([result.buffer], { type: 'image/gif' })),
+            size: result.length,
+            attempts: attemptCount
+        };
+
+    } catch (e) {
+        await cleanUp();
+        throw e;
+    }
 };

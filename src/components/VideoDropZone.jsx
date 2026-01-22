@@ -15,13 +15,26 @@ const ACCEPTED_VIDEO_TYPES = [
 
 const MAX_SIZE_WARNING_MB = 200;
 
-const VideoDropZone = ({ onVideoSelected, className, disabled }) => {
+const VideoDropZone = ({ onVideoSelected, className, disabled, accept }) => {
     const { t } = useLanguage();
     const [isDragActive, setIsDragActive] = useState(false);
 
     const isValidVideo = (file) => {
-        return ACCEPTED_VIDEO_TYPES.includes(file.type) ||
-               file.name.match(/\.(mp4|webm|mov|mkv|avi|flv)$/i);
+        if (!accept) {
+            return ACCEPTED_VIDEO_TYPES.includes(file.type) ||
+                file.name.match(/\.(mp4|webm|mov|mkv|avi|flv)$/i);
+        }
+
+        // Check MIME type
+        const mimes = Object.keys(accept);
+        if (mimes.includes(file.type)) return true;
+
+        // Check extensions
+        const extension = '.' + file.name.split('.').pop().toLowerCase();
+        for (const mime of mimes) {
+            if (accept[mime].includes(extension)) return true;
+        }
+        return false;
     };
 
     const handleDragOver = useCallback((e) => {
@@ -80,7 +93,7 @@ const VideoDropZone = ({ onVideoSelected, className, disabled }) => {
         >
             <input
                 type="file"
-                accept="video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo,.mp4,.webm,.mov,.mkv,.avi,.flv"
+                accept={accept ? Object.keys(accept).join(',') + ',' + Object.values(accept).flat().join(',') : "video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo,.mp4,.webm,.mov,.mkv,.avi,.flv"}
                 onChange={handleFileInput}
                 disabled={disabled}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"

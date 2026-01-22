@@ -27,7 +27,7 @@ createRoot(document.getElementById('root')).render(
             // Special cases for non-LandingPage components
             if (route.path === '/') return <Route key={route.path} path="/" element={<App lockMode initialMode="images" />} />;
             if (route.path === '/video-to-gif') return <Route key={route.path} path={route.path} element={<App initialMode="video" lockMode />} />;
-            if (route.key === 'image-to-mp4') return <Route key={route.path} path={route.path} element={<ImageToMp4Page />} />;
+            if (route.key === 'image-to-mp4') return <Route key={route.path} path={route.path} element={<App initialMode="images" initialSettings={{ outputFormat: 'mp4' }} />} />;
             if (route.key === 'compress-mp4') return <Route key={route.path} path={route.path} element={<CompressMp4Page />} />;
             if (route.key === 'crop-gif') return <Route key={route.path} path={route.path} element={<CropGifPage />} />;
             if (route.key === 'gif-canvas') return <Route key={route.path} path={route.path} element={<GifCanvasPage />} />;

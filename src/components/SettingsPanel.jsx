@@ -8,6 +8,7 @@ const OUTPUT_FORMATS = [
     { id: 'gif', label: 'GIF', icon: Image, descKey: 'outputFormat.gifDesc' },
     { id: 'webp', label: 'WebP', icon: FileImage, descKey: 'outputFormat.webpDesc' },
     { id: 'apng', label: 'APNG', icon: FileImage, descKey: 'outputFormat.apngDesc' },
+    { id: 'mp4', label: 'MP4', icon: Video, descKey: 'outputFormat.mp4Desc' },
 ];
 
 // Platform presets for social media optimization - result-oriented descriptions
@@ -757,6 +758,37 @@ const SettingsPanel = ({
                                     </div>
                                 )}
                             </div>
+
+                            {/* FPS Setting (Only for Video Mode OR Image Mode with MP4 format) */}
+                            {(inputMode === 'video' || (inputMode === 'images' && settings.outputFormat === 'mp4')) && (
+                                <div className={`space-y-2 ${highlightClass('fps')}`}>
+                                    <label className="text-sm font-bold text-gray-700 block">{t('settings.fps') || 'FPS'}</label>
+                                    <select
+                                        value={inputMode === 'video' ? videoFps : (settings.fps || 24)}
+                                        onChange={(e) => {
+                                            const val = Number(e.target.value);
+                                            if (inputMode === 'video') {
+                                                onVideoFpsChange(val);
+                                            } else {
+                                                handleChange('fps', val);
+                                            }
+                                        }}
+                                        className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none"
+                                        style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
+                                    >
+                                        {[10, 12, 15, 24, 30, 60].map((fps) => (
+                                            <option key={fps} value={fps}>
+                                                {fps} fps
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        {inputMode === 'video'
+                                            ? t('settings.fpsDesc') || 'Frame rate of the input video'
+                                            : t('settings.fpsOutputDesc') || 'Frame rate for the MP4 video'}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}
@@ -1313,7 +1345,7 @@ const SettingsPanel = ({
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

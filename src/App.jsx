@@ -40,7 +40,7 @@ const getImageDimensions = (file) => {
   });
 };
 
-function App({ initialMode = 'images', lockMode = false }) {
+function App({ initialMode = 'images', lockMode = false, initialSettings = {} }) {
   const { t, language } = useLanguage();
   const { ffmpeg, loaded, load, isLoading, message } = useFFmpeg();
   const [images, setImages] = useState([]);
@@ -54,6 +54,7 @@ function App({ initialMode = 'images', lockMode = false }) {
     fillColor: 'black',
     crossfadeEnabled: false,
     outputFormat: 'gif',
+    ...initialSettings
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressMsg, setProgressMsg] = useState('');
@@ -646,13 +647,15 @@ function App({ initialMode = 'images', lockMode = false }) {
                 <p className="text-green-600 font-medium mt-2">
                   ✨ Successfully Generated!
                 </p>
-                {/* MP4 suggestion hint */}
-                <p className="text-sm text-gray-500 mt-3">
-                  {t('mp4Hint.text') || 'Need a smaller, smoother result?'}{' '}
-                  <Link to="/image-to-mp4" className="text-blue-600 hover:text-blue-800 underline">
-                    {t('mp4Hint.link') || 'Try Image to MP4'}
-                  </Link>
-                </p>
+                {/* MP4 suggestion hint - only show if not already MP4 */}
+                {settings.outputFormat !== 'mp4' && (
+                  <p className="text-sm text-gray-500 mt-3">
+                    {t('mp4Hint.text') || 'Need a smaller, smoother result?'}{' '}
+                    <Link to="/image-to-mp4" className="text-blue-600 hover:text-blue-800 underline">
+                      {t('mp4Hint.link') || 'Try Image to MP4'}
+                    </Link>
+                  </p>
+                )}
               </div>
               <PreviewArea gifUrl={gifUrl} onDownload={handleDownload} format={settings.outputFormat || 'gif'} />
             </div>

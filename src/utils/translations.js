@@ -37,6 +37,7 @@ export const translations = {
             delay: "Frame Delay",
             delayUnit: "ms",
             delayAutoCalculated: "Auto-calculated from FPS for accurate playback speed",
+            fpsOutputDesc: "Frame rate for the MP4 video",
             quality: "Quality",
             quickPresets: "Quick Presets",
             presetApplied: "Applied \"{name}\" preset",
@@ -236,6 +237,7 @@ export const translations = {
             gifDesc: "Universal compatibility",
             webpDesc: "~60% smaller than GIF",
             apngDesc: "Lossless, best for text/UI",
+            mp4Desc: "High quality video, smaller size",
             hint: {
                 gif: "Best compatibility, 256 colors max",
                 webp: "~60% smaller than GIF, great quality, most browsers",
@@ -305,6 +307,7 @@ export const translations = {
             delay: "帧延迟",
             delayUnit: "毫秒",
             delayAutoCalculated: "根据 FPS 自动计算，确保播放速度准确",
+            fpsOutputDesc: "MP4 视频的帧率",
             quality: "画质",
             quickPresets: "快速预设",
             presetApplied: "已应用「{name}」预设",
@@ -504,6 +507,7 @@ export const translations = {
             gifDesc: "兼容性最好",
             webpDesc: "比 GIF 小约 60%",
             apngDesc: "无损，适合文字/UI",
+            mp4Desc: "高质量视频，体积更小",
             hint: {
                 gif: "兼容性最好，最多 256 色",
                 webp: "比 GIF 小约 60%，质量优秀，大部分浏览器支持",

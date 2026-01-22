@@ -10,7 +10,8 @@ const PreviewArea = ({ gifUrl, onDownload, format = 'gif' }) => {
     const formatLabel = {
         gif: 'GIF',
         webp: 'WebP',
-        apng: 'APNG'
+        apng: 'APNG',
+        mp4: 'MP4'
     }[format] || 'GIF';
 
     if (!gifUrl) {
@@ -29,11 +30,23 @@ const PreviewArea = ({ gifUrl, onDownload, format = 'gif' }) => {
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-2">
                 <div className="relative rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center min-h-[200px]"
                     style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-                    <img
-                        src={gifUrl}
-                        alt={`Generated ${formatLabel}`}
-                        className="max-w-full h-auto object-contain max-h-[600px] relative z-10 shadow-sm"
-                    />
+                    {format === 'mp4' ? (
+                        <video
+                            src={gifUrl}
+                            controls
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="max-w-full h-auto object-contain max-h-[600px] relative z-10 shadow-sm"
+                        />
+                    ) : (
+                        <img
+                            src={gifUrl}
+                            alt={`Generated ${formatLabel}`}
+                            className="max-w-full h-auto object-contain max-h-[600px] relative z-10 shadow-sm"
+                        />
+                    )}
                 </div>
             </div>
 
