@@ -79,7 +79,7 @@ const SortableItem = ({
                 }`}
         >
             {/* Sequence Badge */}
-            <div className="absolute top-3 left-3 z-10">
+            <div className="absolute top-2 left-2 z-20">
                 <div className="w-6 h-6 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm rounded-full text-white text-xs font-bold shadow-sm border border-white/20">
                     {index}
                 </div>
